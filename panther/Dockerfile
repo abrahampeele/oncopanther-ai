@@ -91,8 +91,11 @@ RUN pip install --no-cache-dir \
     pysam==0.22.0 \
     tqdm==4.66.2 \
     requests==2.31.0 \
-    jinja2==3.1.3 \
-    chromadb==1.0.0 \
+    jinja2==3.1.3
+
+# ── AI / RAG packages (separate layer — different version constraints) ────────
+RUN pip install --no-cache-dir \
+    chromadb==1.5.5 \
     sentence-transformers==3.0.1 \
     langchain==0.3.0 \
     langchain-community==0.3.0 \
