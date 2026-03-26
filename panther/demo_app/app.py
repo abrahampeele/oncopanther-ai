@@ -27,6 +27,16 @@ try:
 except ImportError:
     ACMG_CLASSIFIER_OK = False
 
+# OncoPanther AI Engine — offline RAG + local LLM
+try:
+    from ai_engine import (
+        interpret_variant, explain_pgx, batch_interpret_top_variants, ai_status
+    )
+    AI_ENGINE_OK = True
+except ImportError:
+    AI_ENGINE_OK = False
+    def ai_status(): return {"mode": "unavailable", "llm_ready": False, "chromadb": False, "embeddings": False}
+
 # ReportLab for in-memory PDF generation
 try:
     from reportlab.lib.pagesizes import A4
@@ -1177,11 +1187,12 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ─────────────────────────────────────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🧬 New Analysis",
     "⚙️ Pipeline Status",
     "📊 PGx Results",
     "🔬 Variant Interpretation",
+    "🤖 AI Interpretation",
     "📄 Report & Download",
 ])
 
@@ -2201,9 +2212,159 @@ with tab4:
             )
 
 # ═════════════════════════════════════════════════════════════════════════════
-# TAB 5: REPORT & DOWNLOAD
+# ═════════════════════════════════════════════════════════════════════════════
+# TAB 5: AI INTERPRETATION
 # ═════════════════════════════════════════════════════════════════════════════
 with tab5:
+    st.markdown("### 🤖 AI Clinical Interpretation")
+    st.markdown(
+        '<div style="font-size:12px;color:#7f8c8d;margin-bottom:12px;">'
+        'Offline RAG + Local LLM &nbsp;|&nbsp; Knowledge: ClinVar + CPIC + OMIM &nbsp;|&nbsp; '
+        'No internet required &nbsp;|&nbsp; No API keys &nbsp;|&nbsp; Runs entirely inside Docker'
+        '</div>', unsafe_allow_html=True,
+    )
+
+    # ── AI Engine Status Banner ───────────────────────────────────────────────
+    if AI_ENGINE_OK:
+        ai_st = ai_status()
+        mode  = ai_st.get("mode", "rule")
+        mode_color = {"llm": "#27ae60", "rag": "#2980b9", "rule": "#e67e22"}.get(mode, "#7f8c8d")
+        mode_label = {"llm": "🟢 LLM + RAG (full AI)", "rag": "🔵 RAG only (no LLM)", "rule": "🟡 Rule-based (offline fallback)"}.get(mode, mode)
+        st.markdown(
+            f'<div style="background:#f8f9fa;border-left:4px solid {mode_color};padding:10px 14px;'
+            f'border-radius:6px;font-size:13px;margin-bottom:16px;">'
+            f'<b>AI Mode:</b> {mode_label} &nbsp;|&nbsp; '
+            f'<b>Model:</b> {ai_st.get("model","N/A")} &nbsp;|&nbsp; '
+            f'<b>ClinVar docs:</b> {ai_st.get("clinvar_docs",0)} &nbsp;|&nbsp; '
+            f'<b>CPIC docs:</b> {ai_st.get("cpic_docs",0)}'
+            f'</div>', unsafe_allow_html=True,
+        )
+    else:
+        st.info("ℹ️ AI engine not installed. Run `pip install chromadb sentence-transformers ollama` to enable full AI mode.")
+
+    # ── Variant Interpretation Section ───────────────────────────────────────
+    st.markdown("#### 🧬 Top Variant Interpretations")
+    is_demo_ai = st.session_state.get("demo_mode", False)
+    acmg_rows  = (REAL_NA12878_ACMG or DEMO_ACMG_RESULTS) if is_demo_ai else st.session_state.get("acmg_results", [])
+
+    if acmg_rows and AI_ENGINE_OK:
+        with st.spinner("🤖 Generating AI clinical interpretations..."):
+            top_interps = batch_interpret_top_variants(acmg_rows, max_variants=5)
+
+        for i, interp in enumerate(top_interps):
+            acmg_badge_colors = {
+                "Pathogenic": "#c0392b", "Likely Pathogenic": "#e67e22",
+                "Uncertain Significance": "#7f8c8d", "Likely Benign": "#27ae60", "Benign": "#2ecc71"
+            }
+            badge_col = acmg_badge_colors.get(interp.get("acmg_class", ""), "#7f8c8d")
+            src_icon  = {"llm": "🤖", "rag": "📚", "rule": "📋"}.get(interp.get("source", "rule"), "📋")
+
+            with st.expander(
+                f"{src_icon} **{interp.get('gene','?')}** — {interp.get('variant','?')}  "
+                f"[{interp.get('acmg_class','')}]",
+                expanded=(i == 0)
+            ):
+                st.markdown(
+                    f'<span style="background:{badge_col};color:white;padding:2px 8px;'
+                    f'border-radius:4px;font-size:12px;font-weight:bold;">'
+                    f'{interp.get("acmg_class","")}</span> '
+                    f'<span style="font-size:11px;color:#7f8c8d;">Source: {interp.get("source","rule")}</span>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown("")
+                if interp.get("paragraph1"):
+                    st.markdown(interp["paragraph1"])
+                if interp.get("paragraph2"):
+                    st.markdown(interp["paragraph2"])
+                if interp.get("context"):
+                    with st.expander("📖 Knowledge base context used", expanded=False):
+                        st.caption(interp["context"][:500] + "...")
+    elif not acmg_rows:
+        st.info("Run a pipeline or load results in **🧬 New Analysis** to see AI interpretations.")
+    else:
+        st.warning("AI engine not available. Install dependencies to enable interpretations.")
+
+    st.markdown("---")
+
+    # ── PGx AI Drug Safety Section ────────────────────────────────────────────
+    st.markdown("#### 💊 PGx Drug Safety AI Summary")
+
+    pgx_data = st.session_state.get("pgx_data") or (
+        {"genes": [
+            {"gene":"CYP2D6","diplotype":"*4/*4","phenotype":"Poor Metabolizer",
+             "drugs":["codeine","tramadol","amitriptyline","metoprolol"]},
+            {"gene":"CYP2C19","diplotype":"*2/*2","phenotype":"Poor Metabolizer",
+             "drugs":["clopidogrel","omeprazole","escitalopram"]},
+            {"gene":"DPYD","diplotype":"*1/*2A","phenotype":"Intermediate Metabolizer",
+             "drugs":["fluorouracil","capecitabine"]},
+        ]} if is_demo_ai else None
+    )
+
+    if pgx_data and AI_ENGINE_OK:
+        genes_list = pgx_data.get("genes", [])
+        if not genes_list and isinstance(pgx_data, list):
+            genes_list = pgx_data
+
+        # Build gene list from PharmCAT results if available
+        pharmcat_path = None
+        for possible in [
+            _REAL_NA12878_OUTDIR / "PGx" / "pharmcat",
+            PANTHER_DIR / "outdir" / "NA12878_vep" / "PGx" / "pharmcat",
+        ]:
+            if possible.exists():
+                pharmcat_path = possible
+                break
+
+        if pharmcat_path:
+            phen_file = next(pharmcat_path.glob("*phenotype.json"), None)
+            if phen_file:
+                try:
+                    phen_data = json.loads(phen_file.read_text())
+                    genes_from_pharmcat = []
+                    for gname, ginfo in phen_data.get("genes", {}).items():
+                        pheno   = ginfo.get("phenotype", "Unknown")
+                        diplo   = ginfo.get("diplotype", {})
+                        diplo_s = diplo.get("name", "") if isinstance(diplo, dict) else str(diplo)
+                        drugs_g = list(ginfo.get("relatedDrugs", {}).keys())[:5]
+                        if drugs_g:
+                            genes_from_pharmcat.append({
+                                "gene": gname, "diplotype": diplo_s,
+                                "phenotype": pheno, "drugs": drugs_g
+                            })
+                    if genes_from_pharmcat:
+                        genes_list = genes_from_pharmcat
+                except Exception:
+                    pass
+
+        for gentry in genes_list[:5]:
+            gene_name  = gentry.get("gene", "?")
+            diplotype  = gentry.get("diplotype", "unknown")
+            phenotype  = gentry.get("phenotype", "unknown")
+            drugs      = gentry.get("drugs", [])
+
+            with st.spinner(f"💊 AI summary for {gene_name}..."):
+                pgx_interp = explain_pgx(gene_name, diplotype, phenotype, drugs) if AI_ENGINE_OK else None
+
+            if pgx_interp:
+                with st.expander(f"💊 **{gene_name}** — {phenotype} ({diplotype})", expanded=(gene_name=="CYP2D6")):
+                    if pgx_interp.get("paragraph1"):
+                        st.markdown(pgx_interp["paragraph1"])
+                    if pgx_interp.get("paragraph2"):
+                        st.markdown(pgx_interp["paragraph2"])
+                    if pgx_interp.get("recommendations"):
+                        st.markdown("**Drug-specific recommendations:**")
+                        for rec in pgx_interp["recommendations"]:
+                            drug, action = rec.split(": ", 1) if ": " in rec else (rec, "")
+                            icon = "🔴" if "AVOID" in action or "CONTRAIN" in action else ("🟡" if "REDUC" in action or "LOWER" in action else "🟢")
+                            st.markdown(f"{icon} **{drug}** — {action}")
+    elif not pgx_data:
+        st.info("Run pipeline with `--pgx` flag to generate PGx AI drug safety summaries.")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# TAB 6: REPORT & DOWNLOAD
+# ═════════════════════════════════════════════════════════════════════════════
+with tab6:
     st.markdown("### 📄 Clinical PGx Report")
 
     if not st.session_state.pipeline_done:
