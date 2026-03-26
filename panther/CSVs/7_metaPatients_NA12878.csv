@@ -1,0 +1,2 @@
+Identifier,SampleID,Gender,Dob,Ethnicity,Diagnosis,vcFile
+HG001,NA12878,female,1953-01-01,European,WGS,/home/crak/giab/NA12878/HG001_GRCh38_GIAB_NA12878_pharmcat_ready.vcf.gz

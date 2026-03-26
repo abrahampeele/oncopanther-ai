@@ -1,0 +1,10 @@
+name: vep_env
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - ensembl-vep=114.2
+  - samtools=1.21
+  - bcftools=1.21
+  - htslib=1.21

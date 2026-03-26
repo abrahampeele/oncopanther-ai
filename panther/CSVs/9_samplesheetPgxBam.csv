@@ -1,0 +1,4 @@
+patient_id,bamFile
+fatherID,./outdir/Mapping/fatherID_oncoPanther.bam
+motherID,./outdir/Mapping/motherID_oncoPanther.bam
+sonID,./outdir/Mapping/sonID_oncoPanther.bam

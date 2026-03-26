@@ -1,0 +1,75 @@
+# ─── Pipeline outputs (large, not for Git) ───────────────────────────────────
+panther/outdir/
+panther/work/
+panther/.nextflow/
+panther/.nextflow.log*
+*.nextflow.log*
+
+# ─── Reference genomes & large data ──────────────────────────────────────────
+panther/Reference_Genome/*.fa
+panther/Reference_Genome/*.fna
+panther/Reference_Genome/*.fasta
+panther/Reference_Genome/*.fa.fai
+panther/Reference_Genome/*.fa.amb
+panther/Reference_Genome/*.fa.ann
+panther/Reference_Genome/*.fa.bwt
+panther/Reference_Genome/*.fa.pac
+panther/Reference_Genome/*.fa.sa
+panther/Reference_Genome/*.fa.0123
+panther/Reference_Genome/*.fa.bwt.2bit.64
+panther/Reference_Genome/*.dict
+panther/Reference_Genome/*.bgz
+panther/Reference_Genome/*.bgz.fai
+panther/Reference_Genome/*.bgz.gzi
+panther/reference.fna.bgz*
+panther/knownsites/*.vcf
+panther/knownsites/*.vcf.gz
+panther/knownsites/*.tbi
+panther/Data/*.fastq.gz
+panther/Data/*.bam
+panther/Data/*.bai
+
+# ─── PharmCAT binaries (large JARs / executables) ─────────────────────────────
+panther/pharmcat.jar
+panther/pharmcat_pipeline
+panther/pharmcat_vcf_preprocessor
+panther/pharmcat_positions*.vcf*
+panther/pharmcat_positions*.bgz*
+panther/pharmcat_regions.bed
+panther/pcat/
+
+# ─── Conda / Python caches ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.conda/
+*.egg-info/
+dist/
+build/
+
+# ─── VEP cache (very large) ──────────────────────────────────────────────────
+.vep/
+
+# ─── Streamlit ───────────────────────────────────────────────────────────────
+panther/demo_app/.streamlit/secrets.toml
+.streamlit/secrets.toml
+
+# ─── OS / Editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+*.log
+
+# ─── Secrets / credentials ───────────────────────────────────────────────────
+.env
+*.env
+secrets.toml
+config.json
+
+# ─── Test / temp ─────────────────────────────────────────────────────────────
+panther/_nul/
+*.tmp
+*.bak

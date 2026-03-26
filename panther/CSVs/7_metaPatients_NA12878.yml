@@ -1,0 +1,24 @@
+# Clinical Data Record - NA12878 (HG001 GIAB Reference Sample)
+
+physician:
+  name: "Dr. Jane Doe"
+  specialty: "Clinical Pharmacogenomics"
+  contact:
+    email: "jane.doe@geneticshospital.org"
+    phone: "+1-555-123-4567"
+  affiliation: "Genetics and Genomics Institute"
+
+institution:
+  name: "Genome in a Bottle Consortium"
+  address:
+    street: "100 Bureau Drive"
+    city: "Gaithersburg"
+    state: "MD"
+    zip: "20899"
+    country: "USA"
+  department: "Material Measurement Laboratory"
+  accreditation: "NIST"
+
+hpo_terms:
+  - id: "HP:0000001"
+    term: "All"

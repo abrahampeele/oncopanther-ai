@@ -1,0 +1,56 @@
+# Nextflow work dirs & cache
+work/
+.nextflow/
+.nextflow.log*
+.nf-conda-cache/
+*.log
+
+# Large output files
+outdir/
+*.fastq.gz
+*.bam
+*.bai
+*.vcf.gz
+*.vcf.gz.tbi
+*.bgz
+*.bgz.fai
+*.bgz.gzi
+
+# Reference genomes & indices
+*.fa
+*.fna
+*.fasta
+*.fa.fai
+*.dict
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa
+*.0123
+*.bwt.2bit.64
+
+# PharmCAT binaries
+panther/pharmcat.jar
+panther/pharmcat_pipeline
+panther/pharmcat_vcf_preprocessor
+panther/pharmcat_positions*
+panther/pharmcat_regions*
+panther/pcat/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+.env
