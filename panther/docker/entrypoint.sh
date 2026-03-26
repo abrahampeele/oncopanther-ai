@@ -13,7 +13,7 @@ STATUS_FILE="${REFS_DIR}/.setup_complete"
 PANTHER_DIR="/app/panther"
 
 echo "======================================================"
-echo "  OncoPanther-AI v1.0.0"
+echo "  OncoPanther-AI v2.0.0"
 echo "  Clinical Genomics Pipeline"
 echo "  $(date)"
 echo "======================================================"
@@ -67,6 +67,13 @@ export ONCOPANTHER_FASTA="$GRCh38_FA"
 export ONCOPANTHER_VEP_CACHE="$VEP_CACHE"
 export ONCOPANTHER_CLINVAR="$CLINVAR"
 
+# ── Start Ollama (local LLM server) ──────────────────────────────────────────
+echo "[$(date)] Starting Ollama LLM server..."
+ollama serve > /tmp/ollama.log 2>&1 &
+OLLAMA_PID=$!
+sleep 3
+echo "[$(date)] Ollama ready (model: llama3.2:3b)"
+
 # ── Start FastAPI REST API ────────────────────────────────────────────────────
 echo "[$(date)] Starting FastAPI on port 8000..."
 cd "$PANTHER_DIR"
@@ -99,4 +106,4 @@ echo "  📁 References: ${REFS_DIR}"
 echo "  📁 Output:     /data/output"
 echo "======================================================"
 
-wait $ST_PID $API_PID
+wait $ST_PID $API_PID $OLLAMA_PID

@@ -12,8 +12,8 @@
 
 FROM ubuntu:22.04
 LABEL maintainer="OncoPanther Team"
-LABEL version="1.0.0"
-LABEL description="OncoPanther-AI: End-to-end clinical genomics pipeline (FASTQ → VCF → PGx → PDF)"
+LABEL version="2.0.0"
+LABEL description="OncoPanther-AI: End-to-end clinical genomics pipeline (FASTQ → VCF → PGx → PDF) + Offline AI interpretation (RAG + LLM)"
 
 # ── Prevent interactive prompts ─────────────────────────────────────────────
 ENV DEBIAN_FRONTEND=noninteractive
@@ -91,7 +91,26 @@ RUN pip install --no-cache-dir \
     pysam==0.22.0 \
     tqdm==4.66.2 \
     requests==2.31.0 \
-    jinja2==3.1.3
+    jinja2==3.1.3 \
+    chromadb==1.0.0 \
+    sentence-transformers==3.0.1 \
+    langchain==0.3.0 \
+    langchain-community==0.3.0 \
+    ollama==0.3.3
+
+# ── Install Ollama (local LLM runner, CPU + GPU) ─────────────────────────────
+RUN apt-get update && apt-get install -y zstd && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# ── Pre-download llama3.2:3b model (2 GB — baked into image, zero internet needed) ──
+# Start Ollama server, pull model, stop server
+RUN ollama serve & \
+    sleep 8 && \
+    ollama pull llama3.2:3b && \
+    pkill ollama || true
+
+ENV OLLAMA_HOST=0.0.0.0:11434
+ENV ONCOPANTHER_LLM=llama3.2:3b
 
 # ── Install Cyrius (CYP2D6 caller) ───────────────────────────────────────────
 RUN git clone https://github.com/Illumina/Cyrius.git /opt/cyrius && \
