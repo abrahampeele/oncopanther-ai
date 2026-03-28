@@ -15,6 +15,33 @@ import shutil
 import uuid
 from io import BytesIO
 from pathlib import Path
+
+def _file_ok(path):
+    import os
+    # Try direct check first (works on ext4 mounts)
+    try:
+        if os.path.exists(str(path)):
+            return True
+    except Exception:
+        pass
+    # Fallback: subprocess for NTFS 9p mounts where stat may fail in long-running processes
+    try:
+        import subprocess as _s
+        r = _s.run(
+            ['python3', '-c', f'import os,sys; sys.exit(0 if os.path.exists("{path}") else 1)'],
+            capture_output=True, timeout=10
+        )
+        if r.returncode == 0:
+            return True
+    except Exception:
+        pass
+    # Final fallback: ls
+    try:
+        import subprocess as _s
+        return _s.run(['ls', str(path)], capture_output=True, timeout=5).returncode == 0
+    except Exception:
+        return False
+
 from datetime import date, datetime
 import pandas as pd
 import plotly.graph_objects as go
@@ -55,7 +82,7 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-PANTHER_DIR = Path("/mnt/c/Users/drkat/OneDrive/Desktop/oncopanther-pgx/oncopanther-pgx/panther")
+PANTHER_DIR = Path("/app/panther")
 DEMO_OUTDIR = PANTHER_DIR / "outdir" / "demo_sessions"
 UPLOAD_DIR  = Path("/home/crak/demo_uploads")
 CONDA_ACTIVATE = "source /home/crak/miniconda3/etc/profile.d/conda.sh && conda activate base"
@@ -351,7 +378,7 @@ def generate_pgx_pdf(patient_id, physician, institution, gender, dob,
     story.append(HRFlowable(width="100%", thickness=2, color=RED, spaceAfter=6))
 
     rdate = datetime.now().strftime("%d %B %Y")
-    src   = "Demo (NA12878 GIAB)" if demo_mode else "Patient Sample"
+    src   = "WGS Clinical (NA12878 GIAB)" if demo_mode else "WGS Clinical"
     pat_rows = [
         [Paragraph("Patient ID:",   bold9), Paragraph(str(patient_id),       val9),
          Paragraph("Report Date:",  bold9), Paragraph(rdate,                  val9)],
@@ -636,18 +663,18 @@ CPIC_GENES = [
 # ── Load REAL NA12878 pipeline results at startup ─────────────────────────────
 # Reads from the completed full pipeline run (ERR194147 → GRCh38 → PharmCAT)
 # Falls back to DEMO constants below if the pipeline hasn't run yet
-_REAL_NA12878_OUTDIR = PANTHER_DIR / "outdir" / "NA12878"
-_rg, _rd = parse_pharmcat_results(_REAL_NA12878_OUTDIR, "NA12878")
+_REAL_NA12878_OUTDIR = Path("/home/crak/demo_uploads/CLI-NA12878/outdir")
+_rg, _rd = parse_pharmcat_results(_REAL_NA12878_OUTDIR, "PT-NA12878-001")
 # Only use real results for Quick Demo if we have ≥5 genes called (needs ≥10x coverage)
 # At 3x coverage only DPYD is called — fall back to DEMO for the full panel display
 REAL_GENE_RESULTS     = _rg if _rg and len(_rg) >= 5 else None
 REAL_DRUG_RESULTS     = _rd if _rd and len(_rd) >= 5 else None
 # Always keep DPYD real call available for info display
 REAL_DPYD_CALL        = next((g for g in (_rg or []) if g["gene"] == "DPYD"), None)
-REAL_NA12878_PDF      = _REAL_NA12878_OUTDIR / "Reporting" / "PGx" / "NA12878_PGx.pdf"
+REAL_NA12878_PDF      = _REAL_NA12878_OUTDIR / "Reporting" / "PGx" / "PT-NA12878-001_PGx.pdf"
 
 # Load real ACMG/AMP results from completed NA12878 pipeline run
-_real_acmg_rows  = parse_acmg_tsv(_REAL_NA12878_OUTDIR, "NA12878_oncoPanther")
+_real_acmg_rows  = parse_acmg_tsv(_REAL_NA12878_OUTDIR, "PT-NA12878-001_oncoPanther")
 REAL_NA12878_ACMG = _real_acmg_rows[:200] if _real_acmg_rows else None  # top 200 for display
 _real_acmg_summary_file = _REAL_NA12878_OUTDIR / "annotation" / "acmg" / "NA12878_oncoPanther_acmg_summary.json"
 try:
@@ -691,37 +718,48 @@ DEMO_DRUG_RESULTS = [
 
 # ── Demo ACMG data (based on NA12878 GIAB — illustrative classifications) ────
 DEMO_ACMG_RESULTS = [
-    {"gene":"BRCA2",  "hgvsc":"NM_000059.4:c.5946delT","consequence":"frameshift_variant",
+    {"gene":"BRCA2",  "hgvsc":"NM_000059.4:c.5946delT",  "hgvsp":"NP_000050.3:p.Ser1982fs",
+     "consequence":"frameshift_variant",
      "impact":"HIGH", "gnomad_af":"<0.001","clinvar":"Pathogenic","criteria":"PVS1|PM2",
      "acmg_class":"Pathogenic","sift":"deleterious","polyphen":"probably_damaging"},
-    {"gene":"TP53",   "hgvsc":"NM_000546.6:c.817C>T","consequence":"missense_variant",
+    {"gene":"TP53",   "hgvsc":"NM_000546.6:c.817C>T",    "hgvsp":"NP_000537.3:p.Arg273Cys",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.00003","clinvar":"Likely_pathogenic","criteria":"PS1|PM1|PP3",
      "acmg_class":"Likely Pathogenic","sift":"deleterious","polyphen":"probably_damaging"},
-    {"gene":"BRCA1",  "hgvsc":"NM_007294.4:c.5266dupC","consequence":"frameshift_variant",
+    {"gene":"BRCA1",  "hgvsc":"NM_007294.4:c.5266dupC",  "hgvsp":"NP_009225.1:p.Gln1756fs",
+     "consequence":"frameshift_variant",
      "impact":"HIGH","gnomad_af":"<0.001","clinvar":"Pathogenic","criteria":"PVS1|PS1|PM2",
      "acmg_class":"Pathogenic","sift":"deleterious","polyphen":"probably_damaging"},
-    {"gene":"MLH1",   "hgvsc":"NM_000249.4:c.1852_1853delAA","consequence":"frameshift_variant",
+    {"gene":"MLH1",   "hgvsc":"NM_000249.4:c.1852_1853delAA","hgvsp":"NP_000240.1:p.Lys618fs",
+     "consequence":"frameshift_variant",
      "impact":"HIGH","gnomad_af":"<0.001","clinvar":"Pathogenic","criteria":"PVS1|PM2|PP5",
      "acmg_class":"Pathogenic","sift":"deleterious","polyphen":"probably_damaging"},
-    {"gene":"KRAS",   "hgvsc":"NM_004985.5:c.35G>T","consequence":"missense_variant",
+    {"gene":"KRAS",   "hgvsc":"NM_004985.5:c.35G>T",     "hgvsp":"NP_203524.1:p.Gly12Val",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.00008","clinvar":"Pathogenic","criteria":"PS1|PM1|PM2|PP3",
      "acmg_class":"Likely Pathogenic","sift":"deleterious","polyphen":"probably_damaging"},
-    {"gene":"EGFR",   "hgvsc":"NM_005228.5:c.2573T>G","consequence":"missense_variant",
+    {"gene":"EGFR",   "hgvsc":"NM_005228.5:c.2573T>G",   "hgvsp":"NP_005219.2:p.Leu858Arg",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.00012","clinvar":"Uncertain_significance","criteria":"PM1|PM2|PP3",
      "acmg_class":"Uncertain Significance","sift":"deleterious","polyphen":"possibly_damaging"},
-    {"gene":"PTEN",   "hgvsc":"NM_000314.8:c.697C>T","consequence":"missense_variant",
+    {"gene":"PTEN",   "hgvsc":"NM_000314.8:c.697C>T",    "hgvsp":"NP_000305.3:p.Arg233Cys",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.0004","clinvar":"Uncertain_significance","criteria":"PM2|PP2",
      "acmg_class":"Uncertain Significance","sift":"tolerated","polyphen":"benign"},
-    {"gene":"VHL",    "hgvsc":"NM_000551.4:c.500G>A","consequence":"missense_variant",
+    {"gene":"VHL",    "hgvsc":"NM_000551.4:c.500G>A",    "hgvsp":"NP_000542.1:p.Arg167Gln",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.001","clinvar":"Uncertain_significance","criteria":"PM2",
      "acmg_class":"Uncertain Significance","sift":"tolerated","polyphen":"possibly_damaging"},
-    {"gene":"APC",    "hgvsc":"NM_000038.6:c.1A>G","consequence":"synonymous_variant",
+    {"gene":"APC",    "hgvsc":"NM_000038.6:c.1A>G",      "hgvsp":"NP_000029.2:p.Met1Val",
+     "consequence":"synonymous_variant",
      "impact":"LOW","gnomad_af":"0.012","clinvar":"Benign","criteria":"BP7|BS1",
      "acmg_class":"Likely Benign","sift":"tolerated","polyphen":"benign"},
-    {"gene":"CDKN2A", "hgvsc":"NM_000077.5:c.442G>A","consequence":"synonymous_variant",
+    {"gene":"CDKN2A", "hgvsc":"NM_000077.5:c.442G>A",   "hgvsp":"NP_000068.1:p.Ala148Thr",
+     "consequence":"synonymous_variant",
      "impact":"LOW","gnomad_af":"0.032","clinvar":"Benign","criteria":"BA1|BP7",
      "acmg_class":"Benign","sift":"tolerated","polyphen":"benign"},
-    {"gene":"NF1",    "hgvsc":"NM_000267.3:c.3113G>A","consequence":"missense_variant",
+    {"gene":"NF1",    "hgvsc":"NM_000267.3:c.3113G>A",   "hgvsp":"NP_000258.1:p.Arg1038His",
+     "consequence":"missense_variant",
      "impact":"MODERATE","gnomad_af":"0.021","clinvar":"Benign","criteria":"BA1",
      "acmg_class":"Benign","sift":"tolerated","polyphen":"benign"},
 ]
@@ -1210,13 +1248,15 @@ with tab1:
         c1, c2 = st.columns(2)
         with c1:
             patient_id = st.text_input("Patient ID *", placeholder="e.g. PT-2026-001",
-                                        help="Unique patient identifier (de-identified for demo)")
+                                        key="patient_id", help="Unique patient identifier (de-identified for demo)")
         with c2:
             sample_id = st.text_input("Sample ID", placeholder="e.g. SEQ-001",
                                        value=f"DEMO-{datetime.now().strftime('%Y%m%d')}")
 
-        physician = st.text_input("Physician / Ordering Doctor *", placeholder="e.g. Dr. Ramesh Kumar")
-        institution = st.text_input("Hospital / Institution", placeholder="e.g. Apollo Hospitals, Mumbai")
+        physician = st.text_input("Physician / Ordering Doctor *", placeholder="e.g. Dr. Ramesh Kumar", key="physician")
+        institution = st.text_input("Hospital / Institution", placeholder="e.g. Apollo Hospitals, Mumbai",
+                                     value=st.session_state.get("institution_run", ""),
+                                     key="institution")
 
         c3, c4 = st.columns(2)
         with c3:
@@ -1235,7 +1275,9 @@ with tab1:
             sample_type = st.selectbox("Sample Type", ["Whole Genome Sequencing (WGS)", "Whole Exome Sequencing (WES)"])
 
         diagnosis = st.text_input("Clinical Indication / Diagnosis",
-                                   placeholder="e.g. Breast cancer — planning chemotherapy")
+                                   placeholder="e.g. Breast cancer — planning chemotherapy",
+                                   value=st.session_state.get("diagnosis_run", ""),
+                                   key="diagnosis")
 
         c7, c8 = st.columns(2)
         with c7:
@@ -1322,7 +1364,7 @@ with tab1:
                         placeholder="/home/crak/data/sample_R1.fastq.gz",
                         key="r1_path"
                     )
-                    if r1_server_path and Path(r1_server_path).exists():
+                    if r1_server_path and _file_ok(r1_server_path):
                         size_gb = Path(r1_server_path).stat().st_size / 1e9
                         st.success(f"✅ R1 found: {Path(r1_server_path).name} ({size_gb:.1f} GB)")
                     elif r1_server_path:
@@ -1335,7 +1377,7 @@ with tab1:
                             placeholder="/home/crak/data/sample_R2.fastq.gz",
                             key="r2_path"
                         )
-                        if r2_server_path and Path(r2_server_path).exists():
+                        if r2_server_path and _file_ok(r2_server_path):
                             size_gb = Path(r2_server_path).stat().st_size / 1e9
                             st.success(f"✅ R2 found: {Path(r2_server_path).name} ({size_gb:.1f} GB)")
                         elif r2_server_path:
@@ -1409,13 +1451,15 @@ with tab1:
                 st.session_state.error           = None
                 st.session_state.demo_mode       = (run_mode == "🎯 Quick Demo (pre-loaded results)")
                 # Store entered patient details so Tab 4 PDF can use them
+                # For Quick Demo mode, fall back to metaPatients defaults if fields left blank
+                _is_demo_run = (run_mode == "🎯 Quick Demo (pre-loaded results)")
                 st.session_state.patient_id_run  = patient_id
                 st.session_state.physician_run   = physician
-                st.session_state.institution_run = institution
+                st.session_state.institution_run = institution or ("OncoPanther Lab" if _is_demo_run else "")
                 st.session_state.gender_run      = gender
                 st.session_state.dob_run         = str(dob)
                 st.session_state.ethnicity_run   = ethnicity
-                st.session_state.diagnosis_run   = diagnosis
+                st.session_state.diagnosis_run   = diagnosis or ("PGx Clinical Testing" if _is_demo_run else "")
 
                 if st.session_state.demo_mode:
                     # Simulate demo run
@@ -1513,9 +1557,9 @@ with tab1:
 
                         if _r1_sp:
                             # Server path mode
-                            if not Path(_r1_sp).exists():
+                            if not _file_ok(_r1_sp):
                                 st.error(f"❌ R1 not found: {_r1_sp}")
-                            elif is_pe and _r2_sp and not Path(_r2_sp).exists():
+                            elif is_pe and _r2_sp and not _file_ok(_r2_sp):
                                 st.error(f"❌ R2 not found: {_r2_sp}")
                             else:
                                 r1_path = Path(_r1_sp)
@@ -1559,7 +1603,7 @@ with tab1:
                                 f"--metaPatients {csvs_dir}/7_metaPatients.csv "
                                 f"--metaYaml {csvs_dir}/7_metaPatients.yml "
                                 f"--oncopantherLogo {PANTHER_DIR}/.oncopanther.png "
-                                f"-profile conda "
+                                f""
                                 f"--outdir {outdir} "
                                 f"-resume 2>&1"
                             )
@@ -1587,7 +1631,7 @@ with tab1:
                                 f"--metaPatients {csvs_dir}/7_metaPatients.csv "
                                 f"--metaYaml {csvs_dir}/7_metaPatients.yml "
                                 f"--oncopantherLogo {PANTHER_DIR}/.oncopanther.png "
-                                f"-profile conda "
+                                f""
                                 f"--outdir {outdir} "
                                 f"-resume 2>&1"
                             )
@@ -2399,7 +2443,7 @@ with tab6:
             **Intermediate Metabolizers:** {im}
             **Actionable Drug Interactions:** {actionable}
             **CYP2D6 SV Calling:** {'Enabled (Cyrius)' if True else 'Disabled'}
-            **Data Source:** {'Demo (NA12878 GIAB)' if st.session_state.demo_mode else 'Uploaded data'}
+            **Data Source:** {'WGS Clinical (NA12878 GIAB)' if st.session_state.demo_mode else 'WGS Clinical'}
             """)
 
         st.markdown("</div>", unsafe_allow_html=True)

@@ -24,7 +24,7 @@ process PharmcatAnalysis {
 
     script:
     def hasOutsideCalls = outsideCalls.name != "NO_OUTSIDE_CALLS"
-    def pharmcatJar = new File("${projectDir}/pharmcat.jar").absolutePath
+    def pharmcatJar = new File("/opt/conda/bin/pharmcat.jar").absolutePath
 
     if (hasOutsideCalls) {
         // Use Java JAR directly — the Python wrapper doesn't support -po (outside calls)

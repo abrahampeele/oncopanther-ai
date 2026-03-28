@@ -20,7 +20,7 @@ process PharmcatPreprocess {
     tuple val(patient_id), path("${patient_id}.missing_pgx_var.vcf"),  emit: missingPgxVars
 
     script:
-    def refArg = pgxRefGenome.name != 'NO_FILE' ? "-refFasta ${pgxRefGenome}" : ""
+    def refArg = pgxRefGenome.name != 'NO_FILE' ? "-refFna ${pgxRefGenome}" : ""
     """
     pharmcat_vcf_preprocessor \\
         -vcf ${vcfFile} \\

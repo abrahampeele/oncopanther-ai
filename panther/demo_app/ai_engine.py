@@ -234,8 +234,13 @@ def _ollama_available() -> bool:
     if not OLLAMA_OK:
         return False
     try:
-        models = _ollama.list()
-        names  = [m.model for m in models.models]
+        result = _ollama.list()
+        # Handle both old API (object with .models) and new API (dict)
+        if isinstance(result, dict):
+            model_list = result.get("models", [])
+            names = [m.get("model", m.get("name", "")) for m in model_list]
+        else:
+            names = [m.model for m in result.models]
         return any(OLLAMA_MODEL.split(":")[0] in n for n in names)
     except Exception:
         return False

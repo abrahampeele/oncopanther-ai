@@ -144,3 +144,71 @@ process GenotypeGvcfs {
         --output cohort_oncoPanther-${regionTag}.vcf.gz
     """
 }
+
+
+// ── SCATTER / GATHER  ── parallel chromosome-level variant calling ──────────
+
+process ScatterCallVariant {
+
+    tag "HC scatter: ${patient_id} | ${chrom}"
+    cpus 2
+
+    conda "bioconda::gatk4=4.4.0.0"
+
+    input:
+    path ref
+    path dic
+    path fai
+    tuple val(patient_id), path(bamFile), path(bamIdx), val(chrom)
+
+    output:
+    tuple val(patient_id),
+          path("${bamFile.baseName}.${chrom}.HC.vcf.gz"),
+          path("${bamFile.baseName}.${chrom}.HC.vcf.gz.tbi"),
+          emit: "scatterVcf"
+
+    script:
+    """
+    gatk HaplotypeCaller         --native-pair-hmm-threads ${task.cpus}         -R ${ref}         -I ${bamFile}         -L ${chrom}         -O ${bamFile.baseName}.${chrom}.HC.vcf.gz
+    """
+}
+
+
+process GatherVcfs {
+
+    tag "Gather VCFs: ${patient_id}"
+    publishDir "${params.outdir}/Variants/gatk", mode: 'copy'
+    cpus 1
+
+    conda "bioconda::gatk4=4.4.0.0"
+
+    input:
+    tuple val(patient_id), path(vcfs), path(tbis)
+
+    output:
+    tuple val(patient_id),
+          path("${patient_id}_oncoPanther.full.HC.vcf.gz"),
+          path("${patient_id}_oncoPanther.full.HC.vcf.gz.tbi"),
+          emit: "CallVariantvcf"
+
+    script:
+    // Sort VCFs by canonical chromosome order
+    def chrOrder = ['chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9',
+                    'chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17',
+                    'chr18','chr19','chr20','chr21','chr22','chrX','chrY','chrM']
+    def vcfList   = (vcfs instanceof List) ? vcfs : [vcfs]
+    def sortedVcfs = vcfList.sort { a, b ->
+        def tokA = a.name.tokenize('.')
+        def tokB = b.name.tokenize('.')
+        def chrA = tokA.find { it.startsWith('chr') } ?: a.name
+        def chrB = tokB.find { it.startsWith('chr') } ?: b.name
+        def idxA = chrOrder.indexOf(chrA); if (idxA < 0) idxA = 999
+        def idxB = chrOrder.indexOf(chrB); if (idxB < 0) idxB = 999
+        idxA <=> idxB
+    }
+    def vcfArgs = sortedVcfs.collect { it.toString() }.join(' ')
+    """
+    bcftools concat -a -D --threads ${task.cpus} -Oz -o ${patient_id}_oncoPanther.full.HC.vcf.gz ${vcfArgs}
+    bcftools index --tbi ${patient_id}_oncoPanther.full.HC.vcf.gz
+    """
+}

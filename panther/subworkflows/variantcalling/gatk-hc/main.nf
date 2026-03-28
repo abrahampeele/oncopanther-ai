@@ -4,7 +4,9 @@ include { OncoPantherWelcome	} from '../../../.logos'
 include { OncoPantherVarCallOutput	} from '../../../.logos'
 	
  
-include { CallVariant     } from '../../../modules/06.0_VariantSNPcall-HC.nf' 
+include { CallVariant         } from '../../../modules/06.0_VariantSNPcall-HC.nf' 
+include { ScatterCallVariant  } from '../../../modules/06.0_VariantSNPcall-HC.nf'
+include { GatherVcfs          } from '../../../modules/06.0_VariantSNPcall-HC.nf'
 include { CreateGVCF      } from '../../../modules/06.0_VariantSNPcall-HC.nf'  
 include { CombineGvcfs    } from '../../../modules/06.0_VariantSNPcall-HC.nf'  
 include { GenotypeGvcfs   } from '../../../modules/06.0_VariantSNPcall-HC.nf' 
@@ -33,17 +35,33 @@ workflow CALL_VARIANT_GATK {
     if  (params.mode 		== null &&
    	 referFileChannel 	!= null ){
 
-	CallVariant 	(  ref_gen_channel
-    	                  ,dictREF.collect()
-    	                  ,samidxREF.collect()
-    	                  ,BamToVarCall
-    	                  ,bedtarget)
-	///// Metrics Extracting from vcfs
-	GenerateStats	(CallVariant.out.CallVariantvcf)
+	// ── Scatter: one GATK HC job per chromosome ──────────────────────────────
+	def grch38Chroms = Channel.from([
+	    'chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9',
+	    'chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17',
+	    'chr18','chr19','chr20','chr21','chr22','chrX','chrY','chrM'
+	])
+
+	// Combine each BAM with every chromosome → parallel scatter jobs
+	def scatteredInput = BamToVarCall.combine(grch38Chroms)
+
+	ScatterCallVariant(
+	    ref_gen_channel,
+	    dictREF.collect(),
+	    samidxREF.collect(),
+	    scatteredInput
+	)
+
+	// ── Gather: merge per-chromosome VCFs back per patient ────────────────────
+	def gatheredVcfs = ScatterCallVariant.out.scatterVcf.groupTuple()
+	GatherVcfs(gatheredVcfs)
+
+	///// Metrics Extracting from merged vcf
+	GenerateStats(GatherVcfs.out.CallVariantvcf)
         if ( params.rsid ) {
-            RsAnnotation(CallVariant.out, AnnotRefVCF )
+            RsAnnotation(GatherVcfs.out.CallVariantvcf, AnnotRefVCF )
         }
-        vcf_out_ch = vcf_out_ch.mix(CallVariant.out.CallVariantvcf)
+        vcf_out_ch = vcf_out_ch.mix(GatherVcfs.out.CallVariantvcf)
 
     } else if ( referFileChannel 	!= null &&
 		params.mode 		== 'cohort' ){	// generate vcf for all inputs
