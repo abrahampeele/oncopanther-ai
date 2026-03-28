@@ -66,6 +66,16 @@ export ONCOPANTHER_REFS="$REFS_DIR"
 export ONCOPANTHER_FASTA="$GRCh38_FA"
 export ONCOPANTHER_VEP_CACHE="$VEP_CACHE"
 export ONCOPANTHER_CLINVAR="$CLINVAR"
+n# ── Fix VEP cache directory structure ────────────────────────────────────────
+mkdir -p "${REFS_DIR}/vep_cache/homo_sapiens" 2>/dev/null || true
+if [ -d "${REFS_DIR}/vep_cache/114_GRCh38" ] && [ ! -L "${REFS_DIR}/vep_cache/homo_sapiens/114_GRCh38" ]; then
+  ln -sf "${REFS_DIR}/vep_cache/114_GRCh38" "${REFS_DIR}/vep_cache/homo_sapiens/114_GRCh38"
+fi
+# Also handle legacy path
+if [ -d "/home/crak/.vep/114_GRCh38" ] && [ ! -L "/home/crak/.vep/homo_sapiens/114_GRCh38" ]; then
+  mkdir -p /home/crak/.vep/homo_sapiens
+  ln -sf /home/crak/.vep/114_GRCh38 /home/crak/.vep/homo_sapiens/114_GRCh38
+fi
 
 # ── Start Ollama (local LLM server) ──────────────────────────────────────────
 echo "[$(date)] Starting Ollama LLM server..."

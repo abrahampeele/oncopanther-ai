@@ -7,7 +7,7 @@ process AcmgClassify {
     tag "ACMG/AMP CLASSIFY ${vcf}"
     publishDir "${params.outdir}/annotation/acmg/", mode: 'copy'
 
-    conda "/home/crak/miniconda3/envs/acmg_env"
+    conda "base"
     container "${workflow.containerEngine == 'singularity'
         ? 'docker://biocontainers/python:3.10'
         : 'biocontainers/python:3.10'}"

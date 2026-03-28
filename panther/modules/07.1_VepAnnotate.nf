@@ -8,7 +8,7 @@ process VepAnnotation {
     publishDir "${params.outdir}/annotation/", mode: 'copy'
 
     // Use pre-built vep_env (avoids OOM from creating new env during pipeline run)
-    conda "/home/crak/miniconda3/envs/vep_env"
+    conda "base"
     container "${workflow.containerEngine == 'singularity'
         ? 'docker://ensemblorg/ensembl-vep:latest'
         : 'ensemblorg/ensembl-vep:latest'}"
