@@ -1,0 +1,71 @@
+# Nextflow work directories and cache
+work/
+work_*/
+.nextflow/
+.nextflow.log*
+*.nextflow.log
+outdir/
+
+# Output / uploaded patient data (never commit)
+demo_uploads/
+
+# Reference genomes (too large for git)
+refs/
+Reference_Genome/
+*.fna
+*.fna.fai
+*.fa
+*.fa.fai
+*.fasta
+*.dict
+
+# Docker / Singularity images
+*.sif
+*.img
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Large annotation / known-sites files
+knownsites/
+pcat/
+pharmcat/*.jar
+pharmcat_pipeline/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Patient sequencing data (never commit)
+*.bam
+*.bai
+*.cram
+*.crai
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.g.vcf.gz
+
+# Secrets
+.env
+secrets.json
+params_private.json
+
+# Temp
+_nul
+nul
+*.tmp

@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use OncoPanther-AI in your research, please cite it as below."
+type: software
+title: OncoPanther-AI
+version: 1.3.0
+date-released: "2026-03-30"
+url: "https://github.com/abrahampeele/oncopanther-ai"
+repository-code: "https://github.com/abrahampeele/oncopanther-ai"
+license: MIT
+abstract: >-
+  OncoPanther-AI is a containerized, offline-capable Nextflow DSL2 pipeline
+  for integrated clinical whole-genome sequencing interpretation. It performs
+  chromosome-scatter GATK variant calling, ACMG/AMP 2015 variant classification,
+  PharmCAT pharmacogenomics, and AI-assisted clinical narrative generation using
+  a locally-deployed LLaMA 3.2 3B model with ChromaDB RAG — without transmitting
+  patient data to external servers.
+keywords:
+  - whole-genome sequencing
+  - clinical genomics
+  - pharmacogenomics
+  - ACMG classification
+  - large language model
+  - retrieval-augmented generation
+  - Nextflow
+  - privacy-preserving AI
+  - variant calling
+  - GATK
+preferred-citation:
+  type: article
+  title: >-
+    OncoPanther-AI: An Offline, Privacy-Preserving Nextflow Pipeline for
+    Integrated Germline Variant Classification, Pharmacogenomics, and
+    AI-Generated Clinical Genomic Narratives
+  journal: Briefings in Bioinformatics
+  year: 2026
+  url: "https://github.com/abrahampeele/oncopanther-ai"
