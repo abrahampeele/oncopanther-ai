@@ -1,0 +1,32 @@
+// Variant Calling subworkflow 
+
+include { OncoPantherWelcome	} from '../../.logos'
+include { OncoPantherVarCallOutput	} from '../../.logos'
+	
+include { SNPSelect		} from '../../modules/09.0_filter.nf' 
+include { FilterSNP		} from '../../modules/09.0_filter.nf' 
+include { INDELSelect		} from '../../modules/09.0_filter.nf' 
+include { FilterINDEL		} from '../../modules/09.0_filter.nf'
+include { SortVCF as SortSnpVcf	} from '../../modules/09.0_filter.nf' 
+include { SortVCF as SortIndVcf	} from '../../modules/09.0_filter.nf' 
+include { mergeVCFs		} from '../../modules/09.0_filter.nf' 
+
+workflow FILTER_VARIANT {
+
+    take:
+    vcf
+
+ 
+    main: 
+    if (params.stepmode && params.exec == "filter" ) {     
+      SNPSelect     (vcf)
+      FilterSNP     (SNPSelect.out  )
+      INDELSelect   (vcf)
+      FilterINDEL   (INDELSelect.out )  
+      SortSnpVcf    (FilterSNP.out)
+      SortIndVcf    (FilterINDEL.out)
+      mergeVCFs     (SortSnpVcf.out.join(SortIndVcf.out).map { sampleId, snpVcf, snpIdx, indelVcf, indelIdx -> tuple(sampleId, snpVcf, snpIdx, indelVcf, indelIdx) } )
+    }
+}
+
+
