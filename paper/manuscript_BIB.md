@@ -97,15 +97,15 @@ A Streamlit-based web application (Module 08.0) provides interactive report revi
 
 **System requirements:** OncoPanther-AI requires a Linux x86_64 host (bare metal or WSL2) with ≥16GB RAM (32GB recommended for 30× WGS), ≥8 CPU cores, and ≥500GB storage. The AI narrative engine requires an additional ~8GB disk for the LLaMA 3.2 3B model and ChromaDB index. GPU acceleration is optional; CPU-only inference is supported.
 
-**Dependencies:** All dependencies are encapsulated in a Docker image (`[dockerhub-user]/oncopanther-ai:latest`, ~12GB). Singularity conversion is supported for HPC environments. Conda/Mamba environments are provided as fallback.
+**Dependencies:** All dependencies are encapsulated in a Docker image (`abpeele/oncopanther-ai:v1.3.0`, ~12GB). Singularity conversion is supported for HPC environments. Conda/Mamba environments are provided as fallback.
 
 **Configuration:** A single `nextflow.config` file controls all parameters. A sample configuration for GIAB NA12878 validation is included. Patient metadata is supplied via YAML sidecar files.
 
 **Availability:**
 - Source code: https://github.com/abrahampeele/oncopanther-ai (license: MIT)
-- Docker image: [Docker Hub URL]
-- Documentation: [GitHub Pages / ReadTheDocs URL]
-- Test dataset: GIAB NA12878 chr20 subset (available via [link])
+- Docker image: https://hub.docker.com/r/abpeele/oncopanther-ai (`abpeele/oncopanther-ai:v1.3.0`)
+- Documentation: https://github.com/abrahampeele/oncopanther-ai#readme
+- Test dataset: GIAB HG001 (NA12878) NISTv3.3.2 truth set — publicly available from NCBI GIAB FTP: `https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/NA12878_HG001/NISTv3.3.2/GRCh38/`
 
 **Version:** v1.3.0 (submitted); actively maintained.
 
@@ -181,13 +181,13 @@ OncoPanther-AI provides a complete, containerized, offline-capable solution for 
 
 ## Acknowledgements
 
-[To be completed]
+The authors thank the Genome in a Bottle Consortium for providing the HG001 (NA12878) reference truth set used in validation. Computational resources were provided by [Institution] HPC cluster / local workstation infrastructure. We acknowledge the developers of GATK, PharmCAT, VEP, RTG Tools, Nextflow, LLaMA, ChromaDB, and the broader open-source bioinformatics community whose tools underpin this pipeline.
 
 ---
 
 ## Funding
 
-[To be completed]
+[To be completed — e.g., "This work received no specific grant funding" or grant details]
 
 ---
 

@@ -47,7 +47,7 @@ GPU optional (AI narrative engine runs on CPU).
 
 ```bash
 # 1. Pull the Docker image
-docker pull abrahampeele/oncopanther-ai:v1.3.0
+docker pull abpeele/oncopanther-ai:v1.3.0
 
 # 2. Run full pipeline (BAM → report)
 nextflow run abrahampeele/oncopanther-ai \
