@@ -1,0 +1,4 @@
+Identifier,SampleID,Gender,Dob,Ethnicity,Diagnosis,vcFile
+fatherID,fatherID,male,1980-01-15,European,WGS,./outdir/Variants/gatk/fatherID_oncoPanther.full.HC.vcf.gz
+motherID,motherID,female,1982-03-20,European,WGS,./outdir/Variants/gatk/motherID_oncoPanther.full.HC.vcf.gz
+sonID,sonID,male,2010-07-10,European,WGS,./outdir/Variants/gatk/sonID_oncoPanther.full.HC.vcf.gz
