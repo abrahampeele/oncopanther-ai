@@ -35,7 +35,19 @@ build/
 knownsites/
 pcat/
 pharmcat/*.jar
+pharmcat*.jar
 pharmcat_pipeline/
+
+# Reference genome bgzipped (too large)
+*.fna.bgz
+*.fna.bgz.fai
+*.fna.bgz.gzi
+
+# Patient data directories
+Data/
+
+# Unpacked Office documents
+paper/manuscript_BIB_unpacked/
 
 # OS
 .DS_Store
