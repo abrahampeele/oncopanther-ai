@@ -8,7 +8,7 @@
 
 ## Authors
 
-**Kesava Himabindhu**¹, **Chinmai [Last Name]**¹, **Abraham Peele**¹²
+**Kesava Himabindhu Vuyyuru**¹, **Chinmai Rayidi**¹, **Kesava Mullati**¹, **Abraham Peele Karlapudi**¹²
 ¹ [Institution]
 ² Corresponding author: [email]
 

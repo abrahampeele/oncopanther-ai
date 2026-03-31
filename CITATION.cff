@@ -26,14 +26,17 @@ keywords:
   - variant calling
   - GATK
 authors:
-  - family-names: Himabindhu
-    given-names: Kesava
+  - family-names: Vuyyuru
+    given-names: Kesava Himabindhu
     affiliation: "[Institution]"
-  - family-names: "[Last Name]"
+  - family-names: Rayidi
     given-names: Chinmai
     affiliation: "[Institution]"
-  - family-names: Peele
-    given-names: Abraham
+  - family-names: Mullati
+    given-names: Kesava
+    affiliation: "[Institution]"
+  - family-names: Karlapudi
+    given-names: Abraham Peele
     affiliation: "[Institution]"
 preferred-citation:
   type: article
