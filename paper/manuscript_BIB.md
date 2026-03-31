@@ -2,15 +2,16 @@
 
 **Target Journal:** Briefings in Bioinformatics (Oxford University Press)
 **Article Type:** Application Note (≤3,000 words main text + up to 4 figures/tables)
-**Status:** DRAFT v0.1 — 2026-03-29
+**Status:** DRAFT v0.1 — 2026-03-31
 
 ---
 
 ## Authors
 
-**Kesava Himabindhu Vuyyuru**¹, **Chinmai Rayidi**¹, **Kesava Mullati**¹, **Abraham Peele Karlapudi**¹²
-¹ [Institution]
-² Corresponding author: [email]
+**Kesava Himabindhu Vuyyuru**¹, **Chinmayi Rayidi**¹, **Kesava Mullati**², **Abraham Peele Karlapudi**¹³
+¹ Department of Bioinformatics, Vignan University, Vadlamudi, Guntur – 522213, Andhra Pradesh, India
+² SecuAI, Hyderabad, India
+³ Corresponding author: abraham.peele@vignan.ac.in
 
 ---
 

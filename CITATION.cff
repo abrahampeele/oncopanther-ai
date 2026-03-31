@@ -28,16 +28,17 @@ keywords:
 authors:
   - family-names: Vuyyuru
     given-names: Kesava Himabindhu
-    affiliation: "[Institution]"
+    affiliation: "Department of Bioinformatics, Vignan University, Guntur, India"
   - family-names: Rayidi
-    given-names: Chinmai
-    affiliation: "[Institution]"
+    given-names: Chinmayi
+    affiliation: "Department of Bioinformatics, Vignan University, Guntur, India"
   - family-names: Mullati
     given-names: Kesava
-    affiliation: "[Institution]"
+    affiliation: "SecuAI, Hyderabad, India"
   - family-names: Karlapudi
     given-names: Abraham Peele
-    affiliation: "[Institution]"
+    affiliation: "Department of Bioinformatics / CS, Vignan University, Guntur, India"
+    email: "abraham.peele@vignan.ac.in"
 preferred-citation:
   type: article
   title: >-
