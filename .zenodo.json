@@ -19,12 +19,17 @@
   ],
   "creators": [
     {
-      "name": "[Author 1 Last], [Author 1 First]",
+      "name": "Himabindhu, Kesava",
       "affiliation": "[Institution]",
       "orcid": ""
     },
     {
-      "name": "[Author 2 Last], [Author 2 First]",
+      "name": "[Last Name], Chinmai",
+      "affiliation": "[Institution]",
+      "orcid": ""
+    },
+    {
+      "name": "Peele, Abraham",
       "affiliation": "[Institution]",
       "orcid": ""
     }

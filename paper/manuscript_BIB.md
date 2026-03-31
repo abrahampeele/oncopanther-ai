@@ -8,7 +8,7 @@
 
 ## Authors
 
-**[Author 1 Name]**¹, **[Author 2 Name]**¹²
+**Kesava Himabindhu**¹, **Chinmai [Last Name]**¹, **Abraham Peele**¹²
 ¹ [Institution]
 ² Corresponding author: [email]
 

@@ -25,6 +25,16 @@ keywords:
   - privacy-preserving AI
   - variant calling
   - GATK
+authors:
+  - family-names: Himabindhu
+    given-names: Kesava
+    affiliation: "[Institution]"
+  - family-names: "[Last Name]"
+    given-names: Chinmai
+    affiliation: "[Institution]"
+  - family-names: Peele
+    given-names: Abraham
+    affiliation: "[Institution]"
 preferred-citation:
   type: article
   title: >-
