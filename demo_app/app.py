@@ -116,11 +116,11 @@ def create_session_samplesheets(session_id, patient_id, physician, institution,
         asm_csv = csvs_dir / "3_samplesheetForAssembly.csv"
         with open(asm_csv, "w") as f:
             if r2_path:
-                f.write("patient_id,read1,read2\n")
+                f.write("patient_id,R1,R2\n")
                 f.write(f"{patient_id},{r1_path},{r2_path}\n")
             else:
                 # Single-end: only R1
-                f.write("patient_id,read1\n")
+                f.write("patient_id,R1\n")
                 f.write(f"{patient_id},{r1_path}\n")
 
     if vcf_path:
@@ -562,6 +562,7 @@ for key, default in {
     "pipeline_logs":     [],
     "gene_results":      [],
     "drug_results":      [],
+    "result_parse_warning": None,
     "session_id":        None,
     "session_outdir":    None,
     "patient_id_run":    None,
@@ -863,16 +864,15 @@ with tab1:
                 "Sequencing Layout",
                 ["🔁 Paired-End (R1 + R2)  — recommended", "➡️ Single-End (R1 only)"],
                 horizontal=True, key="seq_layout",
-                help="Paired-end gives better variant calling accuracy. Single-end is supported for legacy data."
+                help="Paired-end is required for the current FASTQ full-pipeline workflow. Single-end support is not yet available in this build."
             )
             is_paired = seq_layout.startswith("🔁")
 
             if not is_paired:
                 st.markdown("""
                 <div style="background:#FEF9E7;border-left:4px solid #F39C12;padding:8px 12px;border-radius:5px;font-size:12px;">
-                ⚠️ <b>Single-end note:</b> Paired-end is strongly recommended for WGS/WES PGx.
-                Single-end data may have reduced variant calling sensitivity at PGx loci.
-                CYP2D6 Cyrius SV calling requires paired-end BAMs.
+                ⚠️ <b>Current build limitation:</b> The FASTQ full-pipeline workflow currently requires paired-end input (R1 + R2).
+                Please use paired-end FASTQs here, or use the VCF mode for legacy single-end data that has already been called.
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -980,6 +980,7 @@ with tab1:
                 st.session_state.pipeline_logs   = []
                 st.session_state.gene_results    = []
                 st.session_state.drug_results    = []
+                st.session_state.result_parse_warning = None
                 st.session_state.error           = None
                 st.session_state.demo_mode       = (run_mode == "🎯 Quick Demo (pre-loaded results)")
                 # Store entered patient details so Tab 4 PDF can use them
@@ -1082,24 +1083,31 @@ with tab1:
                         r1_path = None
                         r2_path = None
 
-                        is_pe = "is_paired" in st.session_state and st.session_state.get("seq_layout", "").startswith("🔁")
+                        is_pe = st.session_state.get("seq_layout", "").startswith("🔁")
                         # Re-read from widget values captured before button press
                         _r1_sp = st.session_state.get("r1_path", "")
                         _r2_sp = st.session_state.get("r2_path", "")
 
-                        if _r1_sp:
+                        if not is_pe:
+                            st.error("❌ The current FASTQ full-pipeline workflow requires paired-end FASTQ files (R1 + R2).")
+                        elif _r1_sp:
                             # Server path mode
                             if not _file_ok(_r1_sp):
                                 st.error(f"❌ R1 not found: {_r1_sp}")
-                            elif is_pe and _r2_sp and not _file_ok(_r2_sp):
+                            elif not _r2_sp:
+                                st.error("❌ R2 path is required for paired-end FASTQ analysis.")
+                            elif not _file_ok(_r2_sp):
                                 st.error(f"❌ R2 not found: {_r2_sp}")
                             else:
                                 r1_path = Path(_r1_sp)
-                                r2_path = Path(_r2_sp) if (is_pe and _r2_sp) else None
+                                r2_path = Path(_r2_sp)
                         elif r1_file:
                             # Browser upload mode
-                            r1_path = save_uploaded_file(r1_file, sess_dir / r1_file.name)
-                            r2_path = save_uploaded_file(r2_file, sess_dir / r2_file.name) if r2_file else None
+                            if not r2_file:
+                                st.error("❌ Please provide both R1 and R2 FASTQ.gz files for paired-end analysis.")
+                            else:
+                                r1_path = save_uploaded_file(r1_file, sess_dir / r1_file.name)
+                                r2_path = save_uploaded_file(r2_file, sess_dir / r2_file.name)
                         else:
                             st.error("❌ Provide at least R1 FASTQ path (server path or browser upload).")
 
@@ -1291,9 +1299,17 @@ with tab2:
                     if g:
                         st.session_state.gene_results = g
                         st.session_state.drug_results = d
+                        st.session_state.result_parse_warning = None
                     else:
-                        st.session_state.gene_results = DEMO_GENE_RESULTS
-                        st.session_state.drug_results = DEMO_DRUG_RESULTS
+                        st.session_state.gene_results = []
+                        st.session_state.drug_results = []
+                        st.session_state.result_parse_warning = (
+                            f"Pipeline completed, but PharmCAT PGx results could not be parsed for {patient_id_run}. "
+                            "Please review the pipeline logs and output directory instead of relying on demo placeholders."
+                        )
+                        st.session_state.pipeline_logs.append(
+                            f"[{datetime.now().strftime('%H:%M:%S')}] WARNING: PharmCAT PGx results were not parsed from the completed run."
+                        )
 
                     # ── Parse ACMG TSV (produced by --acmg / 07.3_AcmgClassify) ──
                     if not st.session_state.get("acmg_results"):
@@ -1349,6 +1365,9 @@ with tab3:
             f"Activity Score: `{REAL_DPYD_CALL['activity']}` "
             f"— from actual ERR194147 WGS run (GRCh38 · PharmCAT v3.1.1)"
         )
+
+    if st.session_state.get("result_parse_warning"):
+        st.warning(st.session_state.result_parse_warning)
 
     if not st.session_state.gene_results:
         st.info("No results yet. Run an analysis from the **🧬 New Analysis** tab.")
