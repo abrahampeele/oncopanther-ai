@@ -41,6 +41,15 @@ authors:
     email: "abraham.peele@vignan.ac.in"
 preferred-citation:
   type: article
+  authors:
+    - family-names: Vuyyuru
+      given-names: Kesava Himabindhu
+    - family-names: Rayidi
+      given-names: Chinmayi
+    - family-names: Mullati
+      given-names: Kesava
+    - family-names: Karlapudi
+      given-names: Abraham Peele
   title: >-
     OncoPanther-AI: An Offline, Privacy-Preserving Nextflow Pipeline for
     Integrated Germline Variant Classification, Pharmacogenomics, and

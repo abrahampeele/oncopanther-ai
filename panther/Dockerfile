@@ -3,11 +3,11 @@
 # Docker Image — Full Stack (Pipeline + Streamlit App)
 #
 # Usage:
-#   docker build -t oncopanther/oncopanther-ai:latest .
+#   docker build -t abpeele/oncopanther-ai:latest .
 #   docker run -p 8501:8501 \
 #     -v /path/to/refs:/refs \
 #     -v /path/to/data:/data \
-#     oncopanther/oncopanther-ai:latest
+#     abpeele/oncopanther-ai:latest
 # ═══════════════════════════════════════════════════════════════════════════
 
 FROM ubuntu:22.04
@@ -36,8 +36,9 @@ ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # ── Miniforge (conda-forge by default, no Anaconda TOS) ──────────────────────
-RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh \
-    -O /tmp/miniforge.sh && \
+RUN curl -fsSL --retry 5 --retry-connrefused --retry-delay 5 \
+    https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh \
+    -o /tmp/miniforge.sh && \
     bash /tmp/miniforge.sh -b -p /opt/conda && \
     rm /tmp/miniforge.sh
 

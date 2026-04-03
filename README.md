@@ -4,9 +4,9 @@
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.placeholder.svg)](https://doi.org/10.5281/zenodo.placeholder)
-
 **An offline, privacy-preserving Nextflow pipeline for integrated germline variant classification, pharmacogenomics, and AI-generated clinical genomic narratives.**
+
+> Zenodo DOI: pending final archive publication.
 
 > Manuscript submitted to *Briefings in Bioinformatics* (Application Note, 2026)
 
@@ -141,9 +141,10 @@ docker exec -it oncopanther streamlit run /app/panther/demo_app/app.py --server.
 If you use OncoPanther-AI, please cite:
 
 ```
-[Author(s)]. OncoPanther-AI: An Offline, Privacy-Preserving Nextflow Pipeline for
+Vuyyuru KH, Rayidi C, Mullati K, Karlapudi AP.
+OncoPanther-AI: An Offline, Privacy-Preserving Nextflow Pipeline for
 Integrated Germline Variant Classification, Pharmacogenomics, and AI-Generated
-Clinical Genomic Narratives. Briefings in Bioinformatics, 2026.
+Clinical Genomic Narratives. Briefings in Bioinformatics. 2026.
 https://github.com/abrahampeele/oncopanther-ai
 ```
 
