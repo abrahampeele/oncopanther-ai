@@ -55,11 +55,13 @@ include {OncoPantherHelp	} 	from './.logos'
 							       def indexPath = bam.toString() + '.bai'
 							       def indexFile = file(indexPath)
 
+								  if (!bam.exists()) {
+								      throw new IllegalArgumentException("BAM file missing for patient ${row.patient_id}: ${bam}")
+								  }
 								  if (!indexFile.exists()) {
-								      log.warn "Index file missing for BAM: ${bam}. Expected: ${indexPath}"
-								      indexFile = null
-								      }
-							       tuple(row.patient_id, bam, indexFile)
+								      throw new IllegalArgumentException("Index file missing for BAM ${bam}. Expected: ${indexPath}")
+								  }
+								  tuple(row.patient_id, bam, indexFile)
 							       
 							   }.toSortedList { a, b -> a[0] <=> b[0] }   	 
                                       		   	    .flatMap { it } 							: Channel.empty()
@@ -71,11 +73,13 @@ include {OncoPantherHelp	} 	from './.logos'
 							       def indexPath = bam.toString() + '.bai'
 							       def indexFile = file(indexPath)
 
+								  if (!bam.exists()) {
+								      throw new IllegalArgumentException("BAM file missing for patient ${row.patient_id}: ${bam}")
+								  }
 								  if (!indexFile.exists()) {
-								      log.warn "Index file missing for BAM: ${bam}. Expected: ${indexPath}"
-								      indexFile = null
-								      }
-							       tuple(row.patient_id, bam, indexFile)
+								      throw new IllegalArgumentException("Index file missing for BAM ${bam}. Expected: ${indexPath}")
+								  }
+								  tuple(row.patient_id, bam, indexFile)
 							   }.toSortedList { a, b -> a[0] <=> b[0] }   	 
                                       		   	    .flatMap { it } 							: Channel.empty()
     						
@@ -267,3 +271,5 @@ workflow {
 
 
  
+
+
