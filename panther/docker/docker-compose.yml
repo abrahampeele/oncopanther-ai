@@ -1,39 +1,19 @@
 version: '3.8'
 
-# ═══════════════════════════════════════════════════════════════════════
-# OncoPanther-AI — Docker Compose
-#
-# Quick start:
-#   docker-compose up
-#
-# With your own reference data:
-#   REFS_DIR=/path/to/refs DATA_DIR=/path/to/data docker-compose up
-# ═══════════════════════════════════════════════════════════════════════
-
 services:
   oncopanther:
-    image: oncopanther/oncopanther-ai:latest
+    image: abpeele/oncopanther-ai:latest
     container_name: oncopanther-ai
     ports:
-      - "8501:8501"   # Streamlit UI
-      - "8000:8000"   # FastAPI REST
+      - "8501:8501"
+      - "8000:8000"
     volumes:
-      # Reference data — point to your local paths
-      # GCP: use gcsfuse or gsutil to mount gs://genomics-public-data
-      # AWS: use s3fs to mount s3://broad-references
-      - ${REFS_DIR:-./refs}/GRCh38:/refs/GRCh38:ro
-      - ${REFS_DIR:-./refs}/vep_cache:/refs/vep_cache:ro
-      - ${REFS_DIR:-./refs}/clinvar:/refs/clinvar:ro
-
-      # Patient data input/output
-      - ${DATA_DIR:-./data}/input:/data/input
-      - ${DATA_DIR:-./data}/output:/data/output
-
+      - ${REFS_DIR:-./refs}:/refs
+      - ${DATA_DIR:-./data}:/data
     environment:
       - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
       - NXF_HOME=/app/.nextflow
       - PYTHONPATH=/app/panther
-
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
@@ -41,8 +21,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-    # Resource limits (adjust for your VM)
     deploy:
       resources:
         limits:

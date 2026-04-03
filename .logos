@@ -1,0 +1,621 @@
+// OncoPanther Graphics File 
+
+
+// Welcome OncoPanther 
+
+def OncoPantherWelcome(){   
+
+log.info"""
+
+\033[37m   ██████╗ ███╗   ██╗ ██████╗ ██████╗ \033[31m██████╗  █████╗ ███╗   ██╗████████╗██╗  ██╗███████╗██████╗\033[37m
+\033[37m  ██╔═══██╗████╗  ██║██╔════╝██╔═══██╗\033[31m██╔══██╗██╔══██╗████╗  ██║╚══██╔══╝██║  ██║██╔════╝██╔══██╗\033[37m
+\033[37m  ██║   ██║██╔██╗ ██║██║     ██║   ██║\033[31m██████╔╝███████║██╔██╗ ██║   ██║   ███████║█████╗  ██████╔╝\033[37m
+\033[37m  ██║   ██║██║╚██╗██║██║     ██║   ██║\033[31m██╔═══╝ ██╔══██║██║╚██╗██║   ██║   ██╔══██║██╔══╝  ██╔══██╗\033[37m
+\033[37m  ╚██████╔╝██║ ╚████║╚██████╗╚██████╔╝\033[31m██║     ██║  ██║██║ ╚████║   ██║   ██║  ██║███████╗██║  ██║\033[37m
+\033[37m   ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝\033[31m ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝\033[37m
+
+\033[32m         ╔══════════════════════════════════════════════════════════════════════════╗
+         ║  AI-Powered Pipeline for Variant Calling & Precision Oncology | SecuAI  ║
+         ╚══════════════════════════════════════════════════════════════════════════╝\033[37m
+
+\033[32m
+Usage: nextflow run main.nf <modality> [--exec <command>] <params>
+
+For more details, run: nextflow run main.nf --help
+\033[37m
+"""		
+}
+
+// Printing CSV while preparing CSV
+
+def PATHTOCSV(){
+log.info"""
+                                                                               
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ For Raw QC 		=\033[37m ./CSVs/1_samplesheetForRawQC.csv
+\033[32m ✔ For Timming		=\033[37m ./CSVs/2_SamplesheetForTrimming.csv
+\033[32m ✔ For Alignment	=\033[37m ./CSVs/3_samplesheetForAssembly.csv
+\033[32m ✔ For Recalibration	=\033[37m ./CSVs/4_samplesheetForBamFiles.csv
+\033[32m ✔ For Variant Calling	=\033[37m ./CSVs/5_samplesheetReclibFiles.csv
+\033[32m ✔ For Annotation	=\033[37m ./CSVs/6_samplesheetvcfFiles.csv
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+}
+
+
+// Printing Help 
+
+def OncoPantherHelp(){
+
+log.info"""
+
+Program : OncoPanther (Bioinformatics Tool Used In Clinical Genomics)
+Version : v1.00 
+Github  : https://github.com/SecuAI/OncoPanther-AI
+Documentation : - 
+
+\033[32m
+Usage   : nextflow run main.nf <modality> [--exec <module>] <params>
+
+Modality:\033[37m - \033[32m--fullmode\033[37m  : Executing   full   mode from fastq until vaiant calling.
+	  - \033[32m--stepmode\033[37m  : Executing   different   modules   in   standalone  mode.
+
+
+
+\033[32mExecuting fullmode : \033[37m 
+nextflow run main.nf  
+    --fullmode
+    --input  
+    --reference   | [--igenome ]   
+    [--aligner bwamem2]  
+    [--bqsr]  
+    [--knownsite1 ,--knownsite2 |--ivcf1 ,--ivcf2 ]
+    [--mode onlyvcf]  
+
+
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[37m
+
+\033[32mExecuting stepmode : \033[37m 
+nextflow run main.nf  
+    --stepmode
+    --exec <module>
+   
+
+\033[32m
+Module  :\033[37m - \033[32mrawqc\033[37m 	: Check           quality      of     raw           reads.
+	  - \033[32mtrim\033[37m 	: Remove low-quality bp and adapters & checks its quality.
+	  - \033[32mrefidx\033[37m 	: Index   the    reference   genome    for      alignment.
+	  - \033[32malign\033[37m 	: Align     reads      to     the     reference    genome.
+	  - \033[32mbqsr\033[37m 	: Base 		Quality 	Score	    recalibration.
+	  - \033[32mcallvar\033[37m 	: Detect           SNPs      from      aligned      reads.
+	  - \033[32mannotate\033[37m 	: annotate 	    	    vfc 	             file.
+	  - \033[32mreporting\033[37m 	: Auto  	Generate   PDF 	  of   	  vcf 	  reports.
+	  - \033[32mfilter\033[37m 	: Filter  	vcfs  	    to     SNP     and     INDELS.
+	  - \033[32mpgx\033[37m 	: Pharmacogenomics analysis using PharmCAT (CPIC).
+	  - \033[32mhelp\033[37m
+	  - \033[32mversion\033[37m
+
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[37m
+\033[32mRequirements :
+  -- Quality Control
+     \033[32mrawqc\033[37m 	   Check quality of raw reads. 
+                   require : --rawreads <path-to-csv>
+                   output  : .html reads 
+                   	   : .html multiqc 
+
+  -- Trimming
+     \033[32mtrim\033[37m          Remove low-quality bp and adapters & checks its quality.
+     		   require : --tobetrimmed <path-to-csv>
+     		   	   : --trimmomatic, --fastp, --bbduk 
+     		           : --adapters <path-to-adapter-file> [ optional ]
+     		   output  : .fastq trimmed 
+                   	   : .html trimmed reads 
+                   	   : .html multiqc  
+
+  -- Indexing
+     \033[32mrefidx\033[37m 	   Index reference genome for alignment.
+     		   require : --reference <path-to-ref>
+     		   	   : --igenome <value-from-IGENOMES> [ optional ]
+     		   output  : .dict 
+                   	   : .fai  
+                   	   : .{.0123,amb,ann,bwt.2bit.64,pac} 
+   
+  -- Mapping	   
+     \033[32malign\033[37m         Align reads to reference genome.
+  	           require : --reference   <path-to-ref>
+  	         	   : --Tobealigned <path-to-trimmed-csv>
+  		           : --report    [ optional ]
+  		           : --mindepth [ optional ] 
+  		           : --saveImg  [ optional ] 
+  	           output  : .bam
+  	           	   : .bai
+  	           	   : .flagstat
+  	           	   : .coverage.bed
+  	           	   : .bw
+  
+    -- BQSR  
+     \033[32mbqsr\033[37m	   Base quality score recalibration.
+  		   require : --knownsite1, 2 <path-to-vcf-file> , 2 files 
+  		   	   : --ivcf1, 2      <value>  [ optional ]
+  		           : --bam	     <path-to-bam-csv)
+  		           : --report    [ optional ]
+  		           : --mindepth [ optional ] 
+  		           : --saveImg  [ optional ] 
+		   output  : .idx of knwons sites <vcf> 
+		   	   : .table
+		   	   : .bam
+		   	   : .bam
+		   	   	           	   
+  -- Variant Calling	  
+     \033[32mcallvar\033[37m       Detect SNPs from aligned reads.
+  	           require : --reference   <path-to-ref>
+  		   	   : --tovarcall   <path-to-bam-csv)
+  		   	   : --mode only [ optional ]
+  		   	   : --caller deepvariant [ optional ]
+  		   	   : --rsid <path-to-vcf>
+  		   output  : .vcf
+  		   	   : .table
+  -- Annotation	  
+     \033[32mannotate\033[37m       Print out Annotation manual
+     
+     \033[32mvepcache\033[37m       Download vep cache
+  	            require : --species   <value>
+  	           	    : --cachetype <value> [ optional ]
+  	           	    : --assembly  <value> [ optional ]
+  	           	    : --cacheversion  <value> [ optional ] 
+  	            output  : ./vep_cache directory 
+  	            
+     \033[32mvepannotate\033[37m    Vep annotation
+  	            require : --species    <value>
+  	            	    : --reference  <path-to-ref>
+  	            	    : --toannotate <path-to-csv> or <path-to-vcf>
+  	           	    : --assembly   <value>
+  	           	    : --cachetype  <value> [ optional ]
+  	            output  : vcf.gz
+  	            	    : .vcf.gz.tbi
+  	            	    : .html
+   -- Reporting
+      \033[32mreporting\033[37m       Auto Generate PDF of vcf reports
+  	            require : --metaPatients	<path-to-csv>
+			    : --metaYaml 	<path-to-yaml>
+  	            output  : .png
+  	            	    : .pdf
+   -- Filtering
+      \033[32mfilter\033[37m          Filter vcfs to SNP and INDELS
+  	            require : --tofilter	<path-to-csv>
+			    : --QD              <value> [ optional ] ; Default = 2.0 
+			    : --QUAL            <value> [ optional ] ; Default = 30.0 
+			    : --SOR             <value> [ optional ] ; Default = 3.0
+			    : --FSSNP           <value> [ optional ] ; Default = 60.0
+			    : --MQ              <value> [ optional ] ; Default = 40.0
+			    : --MQRankSum       <value> [ optional ] ; Default = -12.5
+			    : --ReadPosRankSumSNP   <value> [ optional ] ; Default = -8.0	
+			    : --FSINDEL             <value> [ optional ] ; Default = 200.0
+			    : --ReadPosRankSumINDEL <value> [ optional ] ; Default = -20.0 
+  	            output  : .vcf.gz
+  	            	    : .tbi
+
+  -- Pharmacogenomics
+     \033[32mpgx\033[37m             Pharmacogenomics analysis using PharmCAT
+  	            require : --pgxVcf          <path-to-csv>       CSV with patient_id and vcFile columns
+  	            	    : --pgxRefGenome    <path-to-fasta>    GRCh38 reference FASTA [ optional ]
+  	            	    : --pgxSources      <CPIC|DPWG|FDA>    Recommendation sources [ optional ] ; Default = CPIC
+  	            	    : --pgxOutsideCalls <path-to-tsv>      Outside calls for CYP2D6 [ optional ]
+  	            	    : --cyp2d6                              Enable CYP2D6 star allele calling (Cyrius) [ optional ]
+  	            	    : --pgxBam         <path-to-csv>       CSV with patient_id and bamFile for CYP2D6 [ optional ]
+  	            	    : --metaPatients    <path-to-csv>      Patient metadata for PDF report [ optional ]
+  	            	    : --metaYaml        <path-to-yaml>     Physician metadata for PDF report [ optional ]
+  	            output  : .preprocessed.vcf.bgz
+  	            	    : .match.json  .phenotype.json
+  	            	    : .report.html .report.json
+  	            	    : _PGx.pdf
+
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[37m
+  To see Defauls params paths:  
+   > nextflow main.nf \033[32m--params\033[37m
+
+"""}
+
+// Printing Params 
+
+def OncoPantherParams(){
+
+log.info"""
+
+\033[32m                                                               DEFAULT PARAMETERS
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+\033[32m --mcpus        =\033[37m null									  	=>  Max Used Cpus : Allocated cpus for the hole pipeline		
+\033[32m --pcpus        =\033[37m null									  	=>  Process cpus : Allocated cpus for each process
+
+\033[32m --outdir       =\033[37m ./outdir  								  	=> ouptuts directory
+\033[32m --stepmode	=\033[37m null  									=> Step mode for running modules
+\033[32m --fullmode	=\033[37m null									  	=> full mode [ fq to vcf ]
+\033[32m --input 	=\033[37m null										=> input for full mode
+\033[32m --bqsr		=\033[37m null  									=> bqsr enable in full mode
+
+\033[32m --keepinter  	=\033[37m false 									=> Keep intermediate BAM files derived from alignment  
+\033[32m --report  	=\033[37m false 									=> Enables Metrics-bigwigs-html summary for Bam files 
+\033[32m --mindepth	=\033[37m 0 										=> Minimum depth in coverage bin plots
+\033[32m --saveImg 	= \033[37m false 	 								=> Save images( plots ) from bigwig files
+
+\033[32m --trimmomatic 	=\033[37m false 									=> Trimming with trimmomatic tool
+\033[32m --fastp	=\033[37m false 									=> Trimming with fastp tool
+\033[32m --bbduk	=\033[37m false 									=> Trimming with bbduk tool
+\033[32m --adapters	=\033[37m null										=> Path for adapter file
+\033[32m --caller       =\033[37m null                                                                          => --caller deepvariant ; only with deepvariant
+\033[32m --modelType    =\033[37m null                                                                          => model_type parameter required for deepvariant caller 
+\033[32m --mode 	=\033[37m null   									=> cohort , Default to null generates all single VCFs			
+
+\033[32m --reference 	=\033[37m null                                                                          => Reference file path
+\033[32m --igenome 	=\033[37m null                                                                          => Reference name to be retrieved using AWS
+\033[32m --rawreads 	=\033[37m e.g. ./CSVs/1_samplesheetForRawQC.csv 					=> Raw reads paths 
+\033[32m --tobetrimmed 	=\033[37m e.g. ./CSVs/2_SamplesheetForTrimming.csv					=> Raw reads paths + trimmomatic parameters
+\033[32m --tobealigned 	=\033[37m e.g. ./CSVs/3_samplesheetForAssembly.csv					=> Trimmed read paths 
+\033[32m --bam		=\033[37m e.g. ./CSVs/4_samplesheetForBamFiles.csv  					=> Bam files paths 
+\033[32m --tovarcall	=\033[37m e.g. ./CSVs/5_samplesheetReclibFiles.csv 					=> Recalibrated Bam files paths 
+\033[32m --toannotate	=\033[37m e.g. ./CSVs/6_samplesheetvcfFiles.csv 					=> Vcf files paths 
+\033[32m --tofilter	=\033[37m e.g. ./CSVs/6_samplesheetvcfFiles.csv 					=> Vcf files paths 
+
+\033[32m --knownsite1	=\033[37m e.g. ./knownsites/1000g_gold_standard.indels.filtered.vcf 			=> vcf file 1 required for bqsr 
+\033[32m --knownsite2 	=\033[37m e.g. ./knownsites/GCF.38.filtered.renamed.vcf			                => vcf file 2 required for bqsr
+\033[32m --rsid         =\033[37m e.g. ./dbsnp_146.hg38.vcf.gz			                                => vcf file for variant ID adding 
+\033[32m --aligner	=\033[37m  Default to null <-> bwa indexing & mapping					=> Burrows-Wheeler Aligner
+\033[32m			         \033[37m  <-> --aligner bwamem2					=> bwa-mem2 version    
+
+\033[32m --generate	=\033[37m The default parameter generates CSVs for all inputs or coverage or target bed file  
+\033[32m			 \033[37m  <-> CSV 							  	=> nextflow main.nf --generate CSV --basedon <path-to-csv>
+\033[32m                         \033[37m  <-> coverage							  	=> --generate coverage --bedtarget BEDFILE 
+
+\033[32m --basedon    	=\033[37m ./CSVs/1_samplesheetForRawQC.csv 				          	=> First input csv to prepare CSVs based on it
+
+\033[32m --region	=\033[37m To extract specific region from initial mapped .bam  
+                                           Default : null  
+                                           exp: "chr1:position1-position2" 
+                                           
+
+
+\033[32m --region       =\033[37m null                                                                          => To extract specific region while variant calling                            
+\033[32m --bedtarget 	=\033[37m Target BEDFILE to extract coverage from bam file
+                                           Default : null   
+\033[32m --igenome     	=\033[37m null  									=> key Value from IGENOMES to download Reference 
+\033[32m --ivcf1 	=\033[37m null 										=> key Value from IVCF to Download vcf file for bqsr  
+\033[32m --ivcf2 	=\033[37m null 										=> key Value from IVCF to Download vcf file for bqsr
+
+\033[32m --species    	=\033[37m null  									=> Vep Cache specie
+\033[32m --cachetype 	=\033[37m null 										=> Vep Cache type , Must be refseq or merged 
+\033[32m --assembly	=\033[37m null										=> Assembly version to use 
+\033[32m --cacheversion	=\033[37m null		  								=> Vep Cache version      
+\033[32m --cachedir  	=\033[37m .vepcachedir  								=> Vep Cache Directory     
+
+\033[32m --metaPatients =\033[37m null   								        => Csv of Metadata of patiens +vcf paths
+\033[32m --metaYaml  	=\033[37m null     								        => Yaml file of Physician metadata + executions steps info
+
+\033[32m --pgx          =\033[37m false                                                                         => Enable PGx analysis in fullmode
+\033[32m --pgxVcf       =\033[37m null                                                                          => CSV with VCF paths for PGx stepmode
+\033[32m --pgxRefGenome =\033[37m null                                                                          => GRCh38 reference FASTA for PharmCAT
+\033[32m --pgxOutsideCalls =\033[37m null                                                                       => TSV with outside calls (e.g., CYP2D6)
+\033[32m --pgxSources   =\033[37m CPIC                                                                          => Recommendation sources: CPIC, DPWG, FDA
+\033[32m --cyp2d6       =\033[37m false                                                                         => Enable CYP2D6 star allele calling (Cyrius)
+\033[32m --pgxBam       =\033[37m null                                                                          => CSV with patient_id and bamFile for CYP2D6
+
+\033[32m --QD           =\033[37m 2.0        								        => Quality by Depth: variant confidence normalized by depth
+\033[32m --QUAL         =\033[37m 30.0      								        => Overall variant quality score
+\033[32m --SOR          =\033[37m 3.0       								        => Strand Odds Ratio: measures strand bias
+\033[32m --FSSNP        =\033[37m 60.0      								        => Fisher Strand (SNPs): p-value for strand bias
+\033[32m --MQ           =\033[37m 40.0      								        => RMS Mapping Quality of reads supporting the variant
+\033[32m --MQRankSum    =\033[37m -12.5     								        => Z-score from Wilcoxon rank sum test of Alt vs Ref read mapping qualities
+\033[32m --ReadPosRankSumSNP    =\033[37m -8.0   							        => Z-score from Wilcoxon rank sum test of Alt vs Ref read position within reads (SNPs)
+\033[32m --FSINDEL              =\033[37m 200.0                                                                 => Fisher Strand (INDELs): p-value for strand bias for indels
+\033[32m --ReadPosRankSumINDEL  =\033[37m -20.0                                                                 => Z-score from Wilcoxon rank sum test of Alt vs Ref read position within reads (INDELs)
+ 
+\033[37m
+                                           
+"""}
+// Version   
+
+def OncoPantherVersion(){   
+OncoPantherWelcome()
+log.info"""
+
+\033[31m OncoPanther version :\033[37m v1.00 	   
+"""		}
+
+// Execution steps
+def OncoPantherSmExec(){ 
+log.info"""
+\033[31m Module :\033[37m - \033[32mrawqc\033[37m 	: Check           quality      of     raw           reads.
+	  - \033[32mtrim\033[37m 	: Remove low-quality bp and adapters & checks its quality.
+	  - \033[32mrefidx\033[37m 	: Index   the    reference   genome    for      alignment.
+	  - \033[32malign\033[37m 	: Align     reads      to     the     reference    genome.
+	  - \033[32mbqsr\033[37m 	: Base 		Quality 	Score	    recalibration.
+	  - \033[32mcallvar\033[37m 	: Detect           SNPs      from      aligned      reads.
+	  - \033[32mannotate\033[37m 	: annotate 	    	    vfc 	             file.
+	  - \033[32mreporting\033[37m 	: Auto  	Generate   PDF 	  of   	  vcf 	  reports.
+	  - \033[32mfilter\033[37m 	: Filter  	vcfs  	    to     SNP     and     INDELS.
+	  - \033[32mpgx\033[37m 	: Pharmacogenomics analysis using PharmCAT (CPIC).
+	  - \033[32mhelp\033[37m
+	  - \033[32mversion\033[37m
+"""
+}
+
+// stepmode Error
+
+def OncoPantherError(){   
+
+OncoPantherWelcome()
+log.info"""
+\033[31m Please Verify The Typed command 
+"""
+OncoPantherSmExec()
+}
+
+
+// OncoPanther Raw QC Output Paths 
+
+def OncoPantherRAWQCOutput() { 
+OncoPantherWelcome()
+log.info"""
+                                                                               
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus  =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus   =\033[37m ${params.pcpus}
+\033[32m ✔ Max Forks      =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Raw QC         =\033[37m ./${params.outdir}/QualityControl/RAW/
+\033[32m ✔ Raw Multi QC   =\033[37m ./${params.outdir}/QualityControl/RAW/multiqc/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+// OncoPanther Raw QC Output Paths 
+
+def OncoPantherTRimmOutput() { 
+OncoPantherWelcome()
+log.info"""
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus       =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus        =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus         =\033[37m ${params.pcpus}
+\033[32m ✔ Max Forks            =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Trimmed Reads        =\033[37m ./${params.outdir}/TrimmedREADS/
+\033[32m ✔ Trimmed QC           =\033[37m ./${params.outdir}/QualityControl/TRIMMED/
+\033[32m ✔ Trimmed Multi QC     =\033[37m ./${params.outdir}/QualityControl/TRIMMED/multiqc/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+
+// OncoPanther Ref Indexing Output Paths 
+
+def OncoPantherINXRefenceOutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus       =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus        =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus         =\033[37m ${params.pcpus}
+\033[32m ✔ Max Forks            =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+
+// OncoPanther Assembly Output Paths 
+def OncoPantherAssemblyOutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                               
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus       =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus        =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus         =\033[37m ${params.pcpus}
+\033[32m ✔ Mapping Max Forks    =\033[37m 2
+\033[32m ✔ Max Forks            =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Mapped reads         =\033[37m ./${params.outdir}/Mapping
+\033[32m ✔ Mapped reads metrics =\033[37m ./${params.outdir}/Mapping/Metrics
+\033[32m ✔ Bam file indexes     =\033[37m ./${params.outdir}/Indexes/BamFiles
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+
+// OncoPanther Base Quality Score recalibration Output Paths 
+def OncoPantherBQSROutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus               =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus                =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus                 =\033[37m ${params.pcpus}
+\033[32m ✔ Mapping Max Forks            =\033[37m 2
+\033[32m ✔ Max Forks                    =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Known Sites (ivcf 1)         =\033[37m ./knownsites/${params.ivcf1}
+\033[32m ✔ Known Sites (ivcf 2)         =\033[37m ./knownsites/${params.ivcf2}
+\033[32m ✔ Known Sites (local vcf 1)    =\033[37m ./knownsites/${params.knownsite1}
+\033[32m ✔ Known Sites (local vcf 2)    =\033[37m ./knownsites/${params.knownsite2}
+\033[32m ✔ Base Recalibration           =\033[37m ./${params.outdir}/Mapping
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+
+// OncoPanther Variant Calling Output Paths 
+def OncoPantherVarCallOutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus       =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus        =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus         =\033[37m ${params.pcpus}
+\033[32m ✔ Max Forks            =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m ✔ Caller               =\033[37m ${params.caller ? "deepvariant" : "gatk" }
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ VCF Files            =\033[37m ./${params.outdir}/Variants/${params.caller ? "deepvariant" : "gatk"}/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+	
+
+
+// OncoPanther Annotate Help
+def OncoPantherAnnotateHelp() { 
+
+OncoPantherWelcome()
+log.info"""
+ 
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ANNOTATION WORKFLOW HELP MENU
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+\033[32m ✔ VEP Annotation Pipeline
+\033[37m   ----------------------
+\033[32m   ▸ Step 1: Download Cache
+\033[37m	▸    nextflow main.nf --exec vepcache
+\033[37m	 
+
+\033[32m   ▸ Step 2: Run Annotation
+\033[37m	▸    nextflow main.nf --exec vepannotate
+\033[37m 
+ 
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m Tip: Use nextflow main.nf --exec help for more options 
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[0m
+	"""
+	}
+	
+	
+// OncoPanther Vep Cache Downloading
+def OncoPantherVepCache() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Species 			=\033[37m ${params.species}
+\033[32m ✔ Cache Type 			=\033[37m ${params.cachetype}
+\033[32m ✔ Assembly			=\033[37m ${params.assembly}
+\033[32m ✔ Cache Directory 		=\033[37m ${params.cachedir}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+// OncoPanther Vep Annotations	
+def OncoPantherVepAnnot() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Species 			=\033[37m ${params.species}
+\033[32m ✔ Cache Type 			=\033[37m ${params.cachetype}
+\033[32m ✔ Assembly			=\033[37m ${params.assembly}
+\033[32m ✔ Cache Directory 		=\033[37m ${params.cachedir}
+\033[32m ✔ Annotated Files   		=\033[37m ./${params.outdir}/annotation/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+	
+// OncoPanther PGx Output Paths
+def OncoPantherPgxOutput() {
+
+OncoPantherWelcome()
+log.info"""
+
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ PGx Analysis         =\033[37m PharmCAT v3.1.1
+\033[32m ✔ Recommendation Source =\033[37m ${params.pgxSources ?: 'CPIC'}
+\033[32m ✔ CYP2D6 Caller        =\033[37m ${params.cyp2d6 ? 'Cyrius (Illumina) - ENABLED' : 'Disabled (use --cyp2d6 to enable)'}
+\033[32m ✔ PGx Preprocessed     =\033[37m ./${params.outdir}/PGx/preprocessed/
+\033[32m ✔ CYP2D6 Results       =\033[37m ./${params.outdir}/PGx/cyp2d6/
+\033[32m ✔ PGx Results          =\033[37m ./${params.outdir}/PGx/pharmcat/
+\033[32m ✔ PGx Reports          =\033[37m ./${params.outdir}/Reporting/PGx/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}
+
+// OncoPanther Reporting
+
+def OncoPantherReporting() {
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Reports			=\033[37m ${params.outdir}/Reporting/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"""
+	}	
+	
+
+// OncoPanther FullMode Output Default
+	
+def FullModeOutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ outdir 			=\033[37m ${params.outdir}
+\033[32m ✔ Input 		        =\033[37m ${params.input}
+\033[32m ✔ Reference 		        =\033[37m ${params.reference ? params.reference : params.igenome} 
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Mapped reads 		=\033[37m ./${params.outdir}/Mapping
+\033[32m ✔ Mapped reads metrics  	=\033[37m ./${params.outdir}/Mapping/Metrics
+\033[32m ✔ Bam file indexes		=\033[37m ./${params.outdir}/Mapping/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ VCF Files 			=\033[37m ./${params.outdir}/Variants/${params.caller ? "deepvariant" : "gatk"}/
+\033[32m ✔ Caller                       =\033[37m ${params.caller ? "deepvariant" : "gatk" }
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus               =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus                =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus                 =\033[37m ${params.pcpus}
+\033[32m ✔ Mapping Max Forks            =\033[37m 2
+\033[32m ✔ Max Forks                    =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 	"""
+}
+
+
+def FullModeBqsrOutput() { 
+
+OncoPantherWelcome()
+log.info"""
+                                                                              
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ outdir                       =\033[37m ${params.outdir}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Mapped reads                 =\033[37m ./${params.outdir}/Mapping
+\033[32m ✔ Mapped reads metrics         =\033[37m ./${params.outdir}/Mapping/Metrics
+\033[32m ✔ Bam file indexes             =\033[37m ./${params.outdir}/Mapping/
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Known Sites (ivcf 1)         =\033[37m ./knownsites/${params.ivcf1}
+\033[32m ✔ Known Sites (ivcf 2)         =\033[37m ./knownsites/${params.ivcf2}
+\033[32m ✔ Known Sites (local vcf 1)    =\033[37m ./knownsites/${params.knownsite1}
+\033[32m ✔ Known Sites (local vcf 2)    =\033[37m ./knownsites/${params.knownsite2}
+\033[32m ✔ Base Recalibration           =\033[37m ./${params.outdir}/Mapping
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ VCF Files 			=\033[37m ./${params.outdir}/Variants/${params.caller ? "deepvariant" : "gatk"}/
+\033[32m ✔ Caller                       =\033[37m ${params.caller ? "deepvariant" : "gatk" }
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\033[32m ✔ Available Cpus               =\033[37m ${ params.detectedCpus }
+\033[32m ✔ Max Used Cpus                =\033[37m ${ params.mcpus ?: params.pcpus}
+\033[32m ✔ Process Cpus                 =\033[37m ${params.pcpus}
+\033[32m ✔ Mapping Max Forks            =\033[37m 2
+\033[32m ✔ Max Forks                    =\033[37m ${params.mcpus ? params.mcpus.intdiv(params.pcpus) : 1}
+\033[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 	"""
+}
+
+

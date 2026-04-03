@@ -1,56 +1,83 @@
-# Nextflow work dirs & cache
+# Nextflow work directories and cache
 work/
+work_*/
 .nextflow/
 .nextflow.log*
-.nf-conda-cache/
-*.log
-
-# Large output files
+*.nextflow.log
 outdir/
-*.fastq.gz
-*.bam
-*.bai
-*.vcf.gz
-*.vcf.gz.tbi
-*.bgz
-*.bgz.fai
-*.bgz.gzi
 
-# Reference genomes & indices
-*.fa
+# Output / uploaded patient data (never commit)
+demo_uploads/
+
+# Reference genomes (too large for git)
+refs/
+Reference_Genome/
 *.fna
-*.fasta
+*.fna.fai
+*.fa
 *.fa.fai
+*.fasta
 *.dict
-*.amb
-*.ann
-*.bwt
-*.pac
-*.sa
-*.0123
-*.bwt.2bit.64
 
-# PharmCAT binaries
-panther/pharmcat.jar
-panther/pharmcat_pipeline
-panther/pharmcat_vcf_preprocessor
-panther/pharmcat_positions*
-panther/pharmcat_regions*
-panther/pcat/
+# Docker / Singularity images
+*.sif
+*.img
 
-# Python
+# Python cache
 __pycache__/
 *.pyc
-.pytest_cache/
+*.pyo
+*.egg-info/
+dist/
+build/
 
-# Streamlit secrets
-.streamlit/secrets.toml
+# Large annotation / known-sites files
+knownsites/
+pcat/
+pharmcat/*.jar
+pharmcat*.jar
+pharmcat_pipeline/
+
+# Reference genome bgzipped (too large)
+*.fna.bgz
+*.fna.bgz.fai
+*.fna.bgz.gzi
+
+# Patient data directories
+Data/
+
+# Unpacked Office documents
+paper/manuscript_BIB_unpacked/
 
 # OS
 .DS_Store
 Thumbs.db
 
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Patient sequencing data (never commit)
+*.bam
+*.bai
+*.cram
+*.crai
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.g.vcf.gz
+
 # Secrets
-*.pem
-*.key
 .env
+secrets.json
+params_private.json
+
+# Temp
+_nul
+nul
+*.tmp

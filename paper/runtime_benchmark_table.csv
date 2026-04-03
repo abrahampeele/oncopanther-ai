@@ -1,0 +1,5 @@
+Sample,Method,Wall_Time_Min,CPU_Pct,Max_RAM_KB,Region,N_Jobs,Speedup
+PT-NA12878-001,"Standard GATK
+(1 thread, chr1)",25.3,1600,,chr1 full,1,1.0x (baseline)
+PT-NA12878-001,"OncoPanther-AI
+(4 parallel, chr1)",8.8,800,,chr1 x 4 regions,4,2.9x

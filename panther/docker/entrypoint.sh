@@ -1,12 +1,5 @@
 #!/bin/bash
-# ═══════════════════════════════════════════════════════════════════════════
-# OncoPanther-AI Docker Entrypoint
-#
-# Flow:
-#   1. Check if reference data exists
-#   2. If NOT → start setup web page + download refs in background
-#   3. If YES → start full pipeline + Streamlit immediately
-# ═══════════════════════════════════════════════════════════════════════════
+set -euo pipefail
 
 REFS_DIR="${REFS_DIR:-/refs}"
 STATUS_FILE="${REFS_DIR}/.setup_complete"
@@ -18,40 +11,33 @@ echo "  Clinical Genomics Pipeline"
 echo "  $(date)"
 echo "======================================================"
 
-# ── Check if first run ────────────────────────────────────────────────────────
 if [ ! -f "$STATUS_FILE" ]; then
     echo ""
-    echo "  🔧 FIRST RUN DETECTED"
+    echo "  FIRST RUN DETECTED"
     echo "  Reference data not found at ${REFS_DIR}"
     echo "  Starting automatic setup..."
     echo ""
 
-    # Start setup progress web page on port 8501
     python3 "${PANTHER_DIR}/docker/setup_progress_app.py" &
     SETUP_UI_PID=$!
 
-    echo "  🌐 Setup progress: http://localhost:8501"
-    echo "  ⏳ Downloading references (~40 GB)..."
-    echo "  📧 This takes 4-8 hours on first run only"
+    echo "  Setup progress: http://localhost:8501"
+    echo "  Downloading references (~40 GB)..."
+    echo "  This takes 4-8 hours on first run only"
     echo ""
 
-    # Run setup in foreground (progress shown in web UI)
     bash "${PANTHER_DIR}/docker/setup_refs.sh" 2>&1
-
-    # Kill setup UI
-    kill $SETUP_UI_PID 2>/dev/null
+    kill "$SETUP_UI_PID" 2>/dev/null || true
 
     echo ""
-    echo "  ✅ SETUP COMPLETE — Starting OncoPanther..."
+    echo "  SETUP COMPLETE - Starting OncoPanther..."
     echo ""
 fi
 
-# ── Update nextflow params to use Docker volume refs ─────────────────────────
 GRCh38_FA="${REFS_DIR}/GRCh38/GRCh38_full_analysis_set.fna"
 VEP_CACHE="${REFS_DIR}/vep_cache"
 CLINVAR="${REFS_DIR}/clinvar/clinvar.vcf.gz"
 
-# Write runtime params override
 cat > /tmp/runtime_params.json << EOF
 {
   "reference":   "${GRCh38_FA}",
@@ -66,25 +52,23 @@ export ONCOPANTHER_REFS="$REFS_DIR"
 export ONCOPANTHER_FASTA="$GRCh38_FA"
 export ONCOPANTHER_VEP_CACHE="$VEP_CACHE"
 export ONCOPANTHER_CLINVAR="$CLINVAR"
-n# ── Fix VEP cache directory structure ────────────────────────────────────────
+
+# Fix VEP cache directory structure
 mkdir -p "${REFS_DIR}/vep_cache/homo_sapiens" 2>/dev/null || true
 if [ -d "${REFS_DIR}/vep_cache/114_GRCh38" ] && [ ! -L "${REFS_DIR}/vep_cache/homo_sapiens/114_GRCh38" ]; then
   ln -sf "${REFS_DIR}/vep_cache/114_GRCh38" "${REFS_DIR}/vep_cache/homo_sapiens/114_GRCh38"
 fi
-# Also handle legacy path
 if [ -d "/home/crak/.vep/114_GRCh38" ] && [ ! -L "/home/crak/.vep/homo_sapiens/114_GRCh38" ]; then
   mkdir -p /home/crak/.vep/homo_sapiens
   ln -sf /home/crak/.vep/114_GRCh38 /home/crak/.vep/homo_sapiens/114_GRCh38
 fi
 
-# ── Start Ollama (local LLM server) ──────────────────────────────────────────
 echo "[$(date)] Starting Ollama LLM server..."
 ollama serve > /tmp/ollama.log 2>&1 &
 OLLAMA_PID=$!
 sleep 3
 echo "[$(date)] Ollama ready (model: llama3.2:3b)"
 
-# ── Start FastAPI REST API ────────────────────────────────────────────────────
 echo "[$(date)] Starting FastAPI on port 8000..."
 cd "$PANTHER_DIR"
 uvicorn demo_app.api:app \
@@ -92,7 +76,6 @@ uvicorn demo_app.api:app \
     --log-level warning &
 API_PID=$!
 
-# ── Start Streamlit App ───────────────────────────────────────────────────────
 echo "[$(date)] Starting Streamlit on port 8501..."
 streamlit run "${PANTHER_DIR}/demo_app/app.py" \
     --server.port 8501 \
@@ -106,14 +89,14 @@ sleep 3
 
 echo ""
 echo "======================================================"
-echo "  ✅ OncoPanther-AI is READY!"
+echo "  OncoPanther-AI is READY!"
 echo ""
-echo "  🌐 Web App:    http://localhost:8501"
-echo "  🔌 REST API:   http://localhost:8000"
-echo "  📖 API Docs:   http://localhost:8000/docs"
+echo "  Web App:    http://localhost:8501"
+echo "  REST API:   http://localhost:8000"
+echo "  API Docs:   http://localhost:8000/docs"
 echo ""
-echo "  📁 References: ${REFS_DIR}"
-echo "  📁 Output:     /data/output"
+echo "  References: ${REFS_DIR}"
+echo "  Output:     /data/output"
 echo "======================================================"
 
 wait $ST_PID $API_PID $OLLAMA_PID

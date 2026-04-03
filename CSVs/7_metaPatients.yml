@@ -1,0 +1,37 @@
+# Clinical Data Record
+
+# The names, institutions, and contact information used in this document are entirely fictitious 
+# and are intended solely for illustrative purposes. 
+# Any resemblance to actual persons, living or dead, or actual organizations is purely coincidental. 
+#There is no intentional reference or misrepresentation of real individuals or entities.
+
+physician:
+  name: "Dr. Jane Doe"
+  specialty: "Clinical Genetics"
+  contact:
+    email: "jane.doe@geneticshospital.org"
+    phone: "+1-555-123-4567"
+  affiliation: "Genetics and Genomics Institute"
+
+institution:
+  name: "Genetics and Genomics Institute"
+  address:
+    street: "123 Medical Center Drive"
+    city: "Boston"
+    state: "MA"
+    zip: "02115"
+    country: "USA"
+  department: "Department of Medical Genetics"
+  accreditation: "CAP/CLIA Certified"
+
+hpo_terms:
+  - id: "HP:0001627"
+    term: "Abnormality of cardiac morphology"
+  - id: "HP:0001250"
+    term: "Seizure"
+  - id: "HP:0004322"
+    term: "Short stature"
+  - id: "HP:0001513"
+    term: "Obesity"
+    
+    
